@@ -7,8 +7,14 @@
 //save setting then in json -> so they dont get lost
 
 const { message, childNodes, childConnections} = require('./crossover.cjs');
+delete require.cache[require.resolve('./crossover.cjs')];       //DELETE CACHE
 console.log(message); // Outputs: Hello from script1!
 console.log("ChildNodes: ", childNodes);
 console.log("ChildConnections: ", childConnections);
 
-//test
+
+
+
+//PAS TO FRONT END
+
+module.exports = {childNodes, childConnections};

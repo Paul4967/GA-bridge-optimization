@@ -261,5 +261,10 @@ function getCoordOfExId(existingId, allNodes) {
     throw new Error("Node Coord missing");
 }
 
+
+
+//PASS TO CONTROLLER
 const message = "Hello from script1!\n\n-->";
 module.exports = { message, childNodes, childConnections};
+
+
