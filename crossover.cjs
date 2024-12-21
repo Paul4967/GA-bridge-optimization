@@ -233,6 +233,23 @@ filteredArray.forEach(([id1, id2]) => {                                         
   }
 });
 
+
+//loop through all nodes and check for each if it intersects with another.
+//if it does: move 1st point of node to each other point (start with closest point) and test for intersections each time.
+//if no point found, do it for other side of beam
+//if still intersecting, remove beam
+
+//OR: determine all free and possible connections first and store them.             --> this is also expensive!!!
+// -> then check if beam that needs to be moved has one point in common with a available connection
+// if yes: move it.     if no, delete it
+// -> doing this, reduces a lot of computation work. NO!^^
+
+//PUT ALL THIS LOGIC INTO EXISTING LOOP
+
+
+
+
+
 console.log("FINAL CONNECTIONS: : :", childConnections);
 //further steps: Delete Duplicates (id1 and id2 can be switched)
 // -> deal with crossings

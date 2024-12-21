@@ -13,7 +13,7 @@
 </head>
 <body>
     <h1 style="text-align: center;">Bridge Visualization</h1>
-    <canvas id="bridgeCanvas" width="800" height="600"></canvas>
+    <canvas id="bridgeCanvas" width="1000" height="400"></canvas>
 
     <script>
         const canvas = document.getElementById('bridgeCanvas');
@@ -21,9 +21,9 @@
 
         const baseNodes = [
             [0.0, 0, 0],
-            [2.0, 4, 0],
-            [4.0, 8, 0],
-            [6.0, 12, 0]
+            [2.0, 2, 0],
+            [4.0, 4, 0],
+            [6.0, 6, 0]
         ];
 
         let childNodes = [];
@@ -52,9 +52,33 @@
 
         // Draw connections
         function drawConnections() {
-            ctx.strokeStyle = 'gray';
+            ctx.strokeStyle = 'purple';
             ctx.lineWidth = 2;
 
+            // Always connect 0 to 2, 2 to 4, and 4 to 6
+            const fixedConnections = [
+                [0, 2],
+                [2, 4],
+                [4, 6]
+            ];
+
+            // Draw fixed connections
+            fixedConnections.forEach(([id1, id2]) => {
+                const node1 = findNodeById(id1);
+                const node2 = findNodeById(id2);
+
+                if (node1 && node2) {
+                    const [_, x1, y1] = node1;
+                    const [__, x2, y2] = node2;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1 * 100, canvas.height - (y1 + 1) * 100); // Adjusted scale for better consistency
+                    ctx.lineTo(x2 * 100, canvas.height - (y2 + 1) * 100); // Adjusted scale for better consistency
+                    ctx.stroke();
+                }
+            });
+
+            // Draw child connections
             childConnections.forEach(([id1, id2]) => {
                 const node1 = findNodeById(id1);
                 const node2 = findNodeById(id2);
@@ -64,8 +88,8 @@
                     const [__, x2, y2] = node2;
 
                     ctx.beginPath();
-                    ctx.moveTo(x1 * 40, canvas.height - y1 * 40);
-                    ctx.lineTo(x2 * 40, canvas.height - y2 * 40);
+                    ctx.moveTo(x1 * 100, canvas.height - (y1 + 1) * 100); // Adjusted scale for better consistency
+                    ctx.lineTo(x2 * 100, canvas.height - (y2 + 1) * 100); // Adjusted scale for better consistency
                     ctx.stroke();
                 }
             });
@@ -74,8 +98,9 @@
         // Draw nodes
         function drawNodes() {
             getAllNodes().forEach(([id, x, y]) => {
-                const screenX = x * 40;
-                const screenY = canvas.height - y * 40;
+                const screenX = x * 100;  // Adjusted scale for consistency
+                const screenY = canvas.height - (y + 1) * 100; // Adjusted scale for consistency
+
                 ctx.beginPath();
                 ctx.arc(screenX, screenY, 5, 0, Math.PI * 2);
                 ctx.fillStyle = baseNodes.some(node => node[0] === id) ? 'blue' : 'red';
