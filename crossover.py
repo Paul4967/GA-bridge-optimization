@@ -168,10 +168,12 @@ for id1, id2 in available_connections:
         # convert coords to: [id1, id2] (can be deleted here)
         result = [
         x_ + y_ / (10 ** len(str(int(y_)))),  
-        mx + my / (10 ** len(str(int(my)))) 
+        ex + ey / (10 ** len(str(int(ey)))) 
         ]
         print("fixed connection: ", result)
-
+        print("A N: ", child_nodes)
+        #^^ hier ist der fehler! manchmal wird existente node rplaced
+        # FIXED!! (m mit e getauscht. m steht für missing. wow!)
 
         # overwrite old connection (by first searching its place in ch_connections)
         for i in range(len(child_connections)):
@@ -179,9 +181,16 @@ for id1, id2 in available_connections:
             if id1_ == id1 and id2_ == id2:
                 child_connections[i] = [
                 x_ + y_ / (10 ** len(str(int(y_)))),  
-                mx + my / (10 ** len(str(int(my)))) 
+                ex + ey / (10 ** len(str(int(ey)))) 
                 ]
+                print("fixed connection: ", child_connections[i])
+
                 break
+    
+        
+
+
+        
 
     ### testet ob die connection (aus id1, id2) bereits in child_connections existiert.
     ### -> es müssen aber alle connections geprüft werden
@@ -189,20 +198,95 @@ for id1, id2 in available_connections:
 
 
     ### INRGENDWAS ZUM PRÜFEN, OB FIXED CONNECTION BEREITS EXISTIERT
+    ### -> ganz am Ende (nach crossings)
     ### WAS WENN BEIDE NODES VON EINER CONNECTION FEHLEN?
     
-print(child_connections)
+print("//////////////////////")
+print("CHILD CONNECTIONS: ", child_connections) #this is wrong
+print("CHILD NODES: ", child_nodes)
+print("CHILD AVAIL NODES: ", child_available_nodes)
+
+print(available_connections)
+
+# SOMETIMES IS CHILD AVAILABLE NODES NOT DEFINED?
+# ---> das ist, wenn alle nodes von den connections noch vorhanden sind (wenn zufällig parent generiert wird)
+# ----> weil child_availalble_nodes ja erst def. wird, wenn eine id nicht existiert
+
+# irgendwie manchmal trotzdem falsche ID replaced
+
+
+
+
+
+def calcRotation(point1, point2, point3):
     
+    all_available_nodes = base_nodes["nodes"] + child_nodes
+    # 1 get coordinates of p1, p2, ...
+    # -> split at decimal point
+    # nodes can be from child, or basenodes
+    point1_ = next((node[1:] for node in all_available_nodes if node[0] == point1), None)
+    point2_ = next((node[1:] for node in all_available_nodes if node[0] == point2), None)
+    point3_ = next((node[1:] for node in all_available_nodes if node[0] == point3), None)
+
+    print("POINTS", point1, point2, point3, "CORDS: ", point1_, point2_, point3_)
+    print("A L L N O D E S:  ", all_available_nodes)
+    # first_val = point1[0]
+    # 2 do calculation
+    # calculate slope (y2-y1 / x2-x1)
+    ### zähler = 0 -> vertikal, nenner = 0 -> horizontal
+    #sigma = (point2_[1] - point1_[1]) / (point2_[0] - point1_[0])
+    #tau = (point3_[1] - point2_[1]) / (point3_[0] - point2_[0])
+     
+    sigma = 1
+    tau = 0 
+    direction = 0
+    if sigma > tau:
+        # right turn
+        direction = 1
+    elif sigma == tau:
+        # no turn
+        direction = 0
+    else:
+        # left turn
+        direction = -1
+
+    return direction
 
 
 
 
+    # crossings
+    # for i in range(len(child_connections)):
+ #           [id1_, id2_] = child_connections[i]
+
+# child_connections_2 = child_connections[:]
+for i in range(len(child_connections)):
+    print("check crossing for: ", child_connections[i])
+
+    # nicht id1, id2 sondern immer 2 nodes
+    # -> dann id1 und id2 zu p1, p2, und von anderer node q1, q2
+    [p1, q1] = child_connections[i]
+
+    # iterate through all other connections
+    for i in range(len(child_connections)):
+
+        [p2, q2] = child_connections[i]
+        # if i != child_connections[i] (p1, p2) -> eig. aich egal, weil übereinander ist kein crossing
+        # crossing logic here
+        print("_points: ", p1, q1, p2, q2)
+        print("C H I L D CN: ", child_connections)
+        print("A V A I L CN: ", available_connections)
+
+        # 1 calculate rotation: (4x)    # prevent div. by zero
+        if [p1, q1] != [p2, q2] and p1 != p2 and p1 != q2 and q1 != p2 and q1 != q2:
+
+            crossing = False
+            if calcRotation(p1, q1, p2) + calcRotation(p1, p1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
+                # beams are crossing
+                crossing = True
+                print("crossing with: ", child_connections[i])
+
+        
 
 
-
-
-# crossings: or calculate every possible connection and crossing?
-# -> so you know if 2 cross?
-
-
-
+#### ELIMINATE SAME CONNECTIONS!!! (duplicates)
