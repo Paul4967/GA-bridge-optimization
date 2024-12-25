@@ -1,6 +1,7 @@
 # Crossover
 import random
 import math
+import json
 
 base_nodes = {
     "nodes": [
@@ -156,9 +157,10 @@ for id1, id2 in available_connections:
             [x, y] = child_available_nodes[i]
             print(mx, my, x, y)
 
+            # euclidiean distance formula
             distance = math.sqrt(((x-mx)**2) + ((y-my)**2))
 
-            if distance < min_distance and (x != mx or y != my):
+            if distance < min_distance and (x != ex or y != ey):
                 min_distance = distance
                 closest_node = child_available_nodes[i]
                 print(distance)
@@ -202,7 +204,7 @@ for id1, id2 in available_connections:
     ### WAS WENN BEIDE NODES VON EINER CONNECTION FEHLEN?
     
 print("//////////////////////")
-print("CHILD CONNECTIONS: ", child_connections) #this is wrong
+print("CHILD CONNECTIONS: ", child_connections) # fixed
 print("CHILD NODES: ", child_nodes)
 print("CHILD AVAIL NODES: ", child_available_nodes)
 
@@ -216,7 +218,7 @@ print(available_connections)
 
 
 
-
+'''
 
 def calcRotation(point1, point2, point3):
     
@@ -234,23 +236,22 @@ def calcRotation(point1, point2, point3):
     # 2 do calculation
     # calculate slope (y2-y1 / x2-x1)
     ### zähler = 0 -> vertikal, nenner = 0 -> horizontal
-    #sigma = (point2_[1] - point1_[1]) / (point2_[0] - point1_[0])
-    #tau = (point3_[1] - point2_[1]) / (point3_[0] - point2_[0])
-     
-    sigma = 1
-    tau = 0 
-    direction = 0
-    if sigma > tau:
-        # right turn
+    # sigma = (point2_[1] - point1_[1]) / (point2_[0] - point1_[0])
+    # tau = (point3_[1] - point2_[1]) / (point3_[0] - point2_[0])
+
+    rotation = (point2_[1] - point1_[1]) * (point3_[0] - point2_[0]) - (point3_[1] - point2_[1]) * (point2_[0] - point1_[0])
+    # rotation > 0 = right, = 0 -> straight 
+
+
+    if rotation > 0:
         direction = 1
-    elif sigma == tau:
-        # no turn
-        direction = 0
-    else:
-        # left turn
+    elif rotation < 0:
         direction = -1
+    else:
+        direction = 0
 
     return direction
+
 
 
 
@@ -274,19 +275,39 @@ for i in range(len(child_connections)):
         # if i != child_connections[i] (p1, p2) -> eig. aich egal, weil übereinander ist kein crossing
         # crossing logic here
         print("_points: ", p1, q1, p2, q2)
-        print("C H I L D CN: ", child_connections)
-        print("A V A I L CN: ", available_connections)
+        if p1 != p2 and q1 != q2:
+            #continue        
 
-        # 1 calculate rotation: (4x)    # prevent div. by zero
-        if [p1, q1] != [p2, q2] and p1 != p2 and p1 != q2 and q1 != p2 and q1 != q2:
-
+            print("C C")
+            print("ROT:", calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2), calcRotation(p1, q1, p2), calcRotation(p1, q1, q2))
             crossing = False
-            if calcRotation(p1, q1, p2) + calcRotation(p1, p1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
+            if calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
                 # beams are crossing
                 crossing = True
-                print("crossing with: ", child_connections[i])
+                print(p1, q1, "is crossing with: ", child_connections[i])
 
         
-
+'''
 
 #### ELIMINATE SAME CONNECTIONS!!! (duplicates)
+
+## save to json
+data = {
+    "child_connections": child_connections,
+    "child_nodes": child_nodes
+}
+
+file_name = "temp.json"
+with open(file_name, 'w') as json_file:
+    json.dump(data, json_file)
+
+
+# same connections (or inverts need to be removed) -> accounted for in fixing connections example: 2.1 3.1 is going to 2.1 1.1 bc 3.1 is gone.
+# -> no rerouting! just delete duplicates
+# note: p1 and p2 can be switched!
+
+
+
+### Rerouting
+### -> cant cross
+### -> cant be existing connection

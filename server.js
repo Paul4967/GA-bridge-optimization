@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const fs = require('fs')
 
 
 
@@ -15,10 +16,26 @@ wss.on('connection', (ws) => {
 
 function myMethod( )
 {
-    const { childNodes, childConnections } = require('./scriptController.js');
-    delete require.cache[require.resolve('./scriptController.js')];         //DELETE CACHE
-    // Send data to client
-    ws.send(JSON.stringify({ childNodes, childConnections }));
+    // GET DATA
+    //const { childNodes, childConnections } = require('./scriptController.js');
+    //delete require.cache[require.resolve('./scriptController.js')];         //DELETE CACHE
+    fs.readFile('temp.json', 'utf8', (err, jsonString) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            return;
+        }
+        try {
+            const data = JSON.parse(jsonString); // Parse JSON
+            const childNodes = data.child_nodes;
+            const childConnections = data.child_connections;
+    
+            // Send data to client
+            ws.send(JSON.stringify({ childNodes, childConnections }));
+        } catch (err) {
+            console.error('Error parsing JSON:', err);
+        }
+    });
+    
 
 }
 
