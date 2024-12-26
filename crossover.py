@@ -13,6 +13,11 @@ base_nodes = {
         # ["b2", 2, 0],
         # ["b3", 4, 0],
         # ["b4", 6, 0],
+    ],
+    "connections": [
+        [0.0, 2.0],
+        [2.0, 4.0],
+        [4.0, 6.0]
     ]
 }
 
@@ -263,44 +268,61 @@ def calcRotation(point1, point2, point3):
 # child_connections_2 = child_connections[:]
 a = 0
 i = 0
-while i < len(child_connections):  # Use a while loop for better control
+all_available_connections = child_connections + base_nodes["connections"]
+while i < len(child_connections):  
     print("check crossing for: ", child_connections[i])
 
     [p1, q1] = child_connections[i]
 
     j = 0
-    while j < len(child_connections):  # Nested while loop
+    while j < len(all_available_connections):  # Nested while loop
         if i == j:  # Skip the same connection
             j += 1
             continue
 
-        [p2, q2] = child_connections[j]
+        [p2, q2] = all_available_connections[j]
         # print("_points: ", p1, q1, p2, q2)
 
         if p1 != p2 and q1 != q2:
-            print("C C")
-            print("ROT:", calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2), calcRotation(p1, q1, p2), calcRotation(p1, q1, q2))
             crossing = False
             if calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
                 crossing = True
-                print(p1, q1, "is crossing with: ", child_connections[j])
-                del child_connections[j]
+                print(p1, q1, "is crossing with: ", all_available_connections[j])
+                print(child_connections[i])
+                del child_connections[i] # hier müsste j stehen -> nein! will i deleten
+                del all_available_connections[i]
+                # i -= 1
                 a -= 1
                 continue  # Skip incrementing `j` since the list size has changed
 
         j += 1  # Increment `j` if no deletion
 
+    
     i += 1  # Increment `i` after finishing checks for the current connection
             
         
-
-        
+### AUCH SCHAUEN OB ES CROSSING MIT FAHRBAHN GIBT (FALLS BUILDING DOMAIN AUCH NEGATIV IST!)
+print(child_connections)
+print(all_available_connections)
 
 
 #### ELIMINATE SAME CONNECTIONS!!! (duplicates)
 # nimmt er glaube durch crossigns schon raus
 # -> doch noch nicht
+seen = set()
+unique_connections = []
 
+for connection in child_connections:
+    # Sort the connection to ensure order does not matter
+    sorted_connection = tuple(sorted(connection))
+    if sorted_connection not in seen:
+        unique_connections.append(connection)
+        seen.add(sorted_connection)
+    
+child_connections = unique_connections
+
+
+#### delete collinear overlapping lines!
 
 
 
