@@ -72,7 +72,7 @@ random.shuffle(shuffled_nodes)
 # select first 50% of shuffled array
 a = 0
 i = 0
-average_node_num = len(all_nodes) // 2
+average_node_num = round(len(all_nodes) / 2)
 while i < average_node_num + a:
         
     # check if object is seen & append if not
@@ -206,7 +206,7 @@ for id1, id2 in available_connections:
 print("//////////////////////")
 print("CHILD CONNECTIONS: ", child_connections) # fixed
 print("CHILD NODES: ", child_nodes)
-print("CHILD AVAIL NODES: ", child_available_nodes)
+# print("CHILD AVAIL NODES: ", child_available_nodes)
 
 print(available_connections)
 
@@ -218,7 +218,7 @@ print(available_connections)
 
 
 
-'''
+
 
 def calcRotation(point1, point2, point3):
     
@@ -248,7 +248,7 @@ def calcRotation(point1, point2, point3):
     elif rotation < 0:
         direction = -1
     else:
-        direction = 0
+        direction = 5 # to prevent linear on 1 line parallel connecting beams from being deleted in if statement below
 
     return direction
 
@@ -261,35 +261,51 @@ def calcRotation(point1, point2, point3):
  #           [id1_, id2_] = child_connections[i]
 
 # child_connections_2 = child_connections[:]
-for i in range(len(child_connections)):
+a = 0
+i = 0
+while i < len(child_connections):  # Use a while loop for better control
     print("check crossing for: ", child_connections[i])
 
-    # nicht id1, id2 sondern immer 2 nodes
-    # -> dann id1 und id2 zu p1, p2, und von anderer node q1, q2
     [p1, q1] = child_connections[i]
 
-    # iterate through all other connections
-    for i in range(len(child_connections)):
+    j = 0
+    while j < len(child_connections):  # Nested while loop
+        if i == j:  # Skip the same connection
+            j += 1
+            continue
 
-        [p2, q2] = child_connections[i]
-        # if i != child_connections[i] (p1, p2) -> eig. aich egal, weil übereinander ist kein crossing
-        # crossing logic here
-        print("_points: ", p1, q1, p2, q2)
+        [p2, q2] = child_connections[j]
+        # print("_points: ", p1, q1, p2, q2)
+
         if p1 != p2 and q1 != q2:
-            #continue        
-
             print("C C")
             print("ROT:", calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2), calcRotation(p1, q1, p2), calcRotation(p1, q1, q2))
             crossing = False
             if calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
-                # beams are crossing
                 crossing = True
-                print(p1, q1, "is crossing with: ", child_connections[i])
+                print(p1, q1, "is crossing with: ", child_connections[j])
+                del child_connections[j]
+                a -= 1
+                continue  # Skip incrementing `j` since the list size has changed
+
+        j += 1  # Increment `j` if no deletion
+
+    i += 1  # Increment `i` after finishing checks for the current connection
+            
+        
 
         
-'''
+
 
 #### ELIMINATE SAME CONNECTIONS!!! (duplicates)
+# nimmt er glaube durch crossigns schon raus
+# -> doch noch nicht
+
+
+
+
+
+
 
 ## save to json
 data = {
