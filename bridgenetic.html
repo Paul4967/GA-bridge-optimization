@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genetic Algorithm Fitness Chart</title>
+    <!-- Include Plotly.js library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Include PapaParse library to parse CSV files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <style>
+        /* Dark mode styles */
+        body {
+            background-color: #121212; /* Dark background */
+            color: white; /* Light text color */
+            font-family: Arial, sans-serif; /* Basic font */
+            padding: 20px;
+        }
+
+        h1 {
+            color: #f1f1f1; /* Light color for the title */
+        }
+
+        /* Style for the chart */
+        #chart {
+            width: 50%; /* Set the chart width to 50% */
+            margin: 0 auto; /* Center align the chart */
+            height: 600px; /* Set a fixed height for the chart */
+        }
+
+        #chart2 {
+            width: 50%; /* Set the second chart width to 50% */
+            margin: 0 auto; /* Center align the chart */
+            height: 600px; /* Set a fixed height for the second chart */
+        }
+
+        /* File input style */
+        input[type="file"] {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Genetic Algorithm Fitness Over Generations</h1>
+    
+    <!-- File input to upload CSV -->
+    <input type="file" id="csvInput" accept=".csv">
+    
+    <!-- Div to display the charts -->
+    <div id="chart"></div>
+    <div id="chart2"></div>
+
+    <script>
+        // Function to handle the CSV file upload and parse it
+        document.getElementById('csvInput').addEventListener('change', function(event) {
+            var file = event.target.files[0];
+            if (file) {
+                Papa.parse(file, {
+                    complete: function(results) {
+                        // Get the parsed data from CSV
+                        var data = results.data;
+
+                        // Extract generations and fitness values
+                        var generations = data.map(function(d) { return d.generation; });
+                        var fitness = data.map(function(d) { return d.fitness; });
+
+                        // Define the trace for the main chart (line chart)
+                        var trace = {
+                            x: generations,
+                            y: fitness,
+                            type: 'scatter',
+                            mode: 'lines+markers',
+                            name: 'Fitness',
+                            line: { color: '#E00000' } // Set line color to green
+                        };
+
+                        // Define the layout of the first chart
+                        var layout = {
+                            title: 'Fitness of Genetic Algorithm over Generations',
+                            xaxis: {
+                                title: 'Generation',
+                                type: 'linear',
+                                gridcolor: '#444', // Lighter grid color
+                                titlefont: {
+                                    color: '#fff' // White axis title color
+                                },
+                                showticklabels: true
+                            },
+                            yaxis: {
+                                title: 'Fitness',
+                                gridcolor: '#444', // Lighter grid color
+                                titlefont: {
+                                    color: '#fff' // White axis title color
+                                }
+                            },
+                            dragmode: 'zoom', // Set the zoom mode
+                            plot_bgcolor: '#000', // Dark background for the plot area
+                            paper_bgcolor: '#000', // Dark background for the paper area
+                            font: {
+                                color: '#f1f1f1' // Light text color
+                            }
+                        };
+
+                        // Define the config to hide the modebar
+                        var config = {
+                            displayModeBar: false // Hide the modebar (top-right toolbar)
+                        };
+
+                        // Plot the first chart in the div with id "chart"
+                        Plotly.newPlot('chart', [trace], layout, config);
+
+                        // Calculate the average fitness per generation for the second chart
+                        var averageFitness = [];
+                        var currentGeneration = generations[0];
+                        var sumFitness = 0;
+                        var count = 0;
+
+                        for (var i = 0; i < generations.length; i++) {
+                            if (generations[i] === currentGeneration) {
+                                sumFitness += fitness[i];
+                                count++;
+                            } else {
+                                // Push the average value for the previous generation
+                                averageFitness.push({ x: currentGeneration, y: sumFitness / count });
+
+                                // Reset for the new generation
+                                currentGeneration = generations[i];
+                                sumFitness = fitness[i];
+                                count = 1;
+                            }
+                        }
+
+                        // Push the last average value
+                        averageFitness.push({ x: currentGeneration, y: sumFitness / count });
+
+                        // Define the trace for the second chart (scatter with average line)
+                        var trace2 = {
+                            x: generations,
+                            y: fitness,
+                            mode: 'markers',
+                            type: 'scatter',
+                            name: 'Scatter Points',
+                            marker: { color: '#0050FD' } // Set scatter points color to red
+                        };
+
+                        var trace3 = {
+                            x: averageFitness.map(d => d.x),
+                            y: averageFitness.map(d => d.y),
+                            mode: 'lines',
+                            type: 'scatter',
+                            name: 'Average Fitness',
+                            line: { color: '#fff' } // Set line color to blue
+                        };
+
+                        // Define the layout of the second chart
+                        var layout2 = {
+                            title: 'Scatter Plot with Average Fitness',
+                            xaxis: {
+                                title: 'Generation',
+                                type: 'linear',
+                                gridcolor: '#444', // Lighter grid color
+                                titlefont: {
+                                    color: '#fff' // White axis title color
+                                },
+                                showticklabels: true
+                            },
+                            yaxis: {
+                                title: 'Fitness',
+                                gridcolor: '#444', // Lighter grid color
+                                titlefont: {
+                                    color: '#fff' // White axis title color
+                                }
+                            },
+                            plot_bgcolor: '#000', // Dark background for the plot area
+                            paper_bgcolor: '#000', // Dark background for the paper area
+                            font: {
+                                color: '#f1f1f1', // Light text color
+                            }
+                        };
+
+                        // Plot the second chart in the div with id "chart2"
+                        Plotly.newPlot('chart2', [trace2, trace3], layout2, config);
+
+                        // Right-click to zoom out (reset) for the first chart
+                        document.getElementById('chart').oncontextmenu = function(event) {
+                            event.preventDefault(); // Prevent the default right-click menu
+                            
+                            // Reset the zoom for the first chart
+                            Plotly.relayout('chart', {
+                                xaxis: {
+                                    range: [Math.min(...generations), Math.max(...generations)],
+                                    gridcolor: '#444',
+                                    title: 'Generation',
+                                    titlefont: { color: '#fff' }
+                                },
+                                yaxis: {
+                                    range: [Math.min(...fitness), Math.max(...fitness)],
+                                    gridcolor: '#444',
+                                    title: 'Fitness',
+                                    titlefont: { color: '#fff' }
+                                },
+                                plot_bgcolor: '#121212',
+                                paper_bgcolor: '#121212',
+                                font: { color: '#f1f1f1' }
+                            });
+                        };
+
+                        // Right-click to zoom out (reset) for the second chart
+                        document.getElementById('chart2').oncontextmenu = function(event) {
+                            event.preventDefault(); // Prevent the default right-click menu
+                            
+                            // Reset the zoom for the second chart
+                            Plotly.relayout('chart2', {
+                                xaxis: {
+                                    range: [Math.min(...generations), Math.max(...generations)],
+                                    gridcolor: '#444',
+                                    title: 'Generation',
+                                    titlefont: { color: '#fff' }
+                                },
+                                yaxis: {
+                                    range: [Math.min(...fitness), Math.max(...fitness)],
+                                    gridcolor: '#444',
+                                    title: 'Fitness',
+                                    titlefont: { color: '#fff' }
+                                },
+                                plot_bgcolor: '#121212',
+                                paper_bgcolor: '#121212',
+                                font: { color: '#f1f1f1' }
+                            });
+                        };
+                    },
+                    header: true // The first row contains column headers
+                });
+            }
+        });
+    </script>
+</body>
+</html>

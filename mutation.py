@@ -36,34 +36,46 @@ def connection_is_possible(x1, y1, x2, y2):
         [x1_, y1_] = getCoords(id1_)
         [x2_, y2_] = getCoords(id2_)
 
-        if 1 == 1: # avoid checking same connections
-            print("con1: ", id1, id2, "con2: ", id1_, id2_)
-            slope1 = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf') # slope of new theoretical connection
-            slope2 = (y2_ - y1_) / (x2_ - x1_) if x2_ != x1_ else float('inf')
+        
+        print("con1: ", id1, id2, "con2: ", id1_, id2_)
+        slope1 = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf') # slope of new theoretical connection
+        slope2 = (y2_ - y1_) / (x2_ - x1_) if x2_ != x1_ else float('inf')
 
-            #check if b is equal
-            b1 = (slope1 * x1) - y1
-            b2 = (slope2 * x1_) - y1_
-            if slope1 == slope2 and b1 == b2 and slope1 != float('inf') and max(x1, x2) > min(x1_, x2_) and max(x1_, x2_) > min(x1, x2): # 1 has to be left and 2 has to be right
-                print ("x-overlap")
-                return False
-            # logic for infinite slope
-            elif slope1 == float('inf') and x1 == x1_:
-                if max(y1, y2) > min(y1_, y2_) and max(y1_, y2_) > min(y1, y2):
-                    print("y-overlap")
-                    return False
-            else:
-                #test for crossing
-                [p1, q1] = [id1, id2]
-                [p2, q2] = [id1_, id2_] 
-                if calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
-                    print (id1, id2, "is crossing with ", id1_, id2_)
-                    return False
-                
-        else:
-            print("same connection for:", id1, id2, id1_, id2_)
+        # check for overlay
+        # check if b is equal
+        b1 = (slope1 * x1) - y1
+        b2 = (slope2 * x1_) - y1_
+        if slope1 == slope2 and b1 == b2 and slope1 != float('inf') and max(x1, x2) > min(x1_, x2_) and max(x1_, x2_) > min(x1, x2): # 1 has to be left and 2 has to be right
+            print ("x-overlap")
             return False
-    
+        # logic for infinite slope
+        elif slope1 == float('inf') and x1 == x1_:
+            if max(y1, y2) > min(y1_, y2_) and max(y1_, y2_) > min(y1, y2):
+                print("y-overlap")
+                return False
+        else:
+            # test for crossing
+            [p1, q1] = [id1, id2]
+            [p2, q2] = [id1_, id2_] 
+            if calcRotation(p1, q1, p2) + calcRotation(p1, q1, q2) == 0 and calcRotation(p2, q2, p1) + calcRotation(p2, q2, q1) == 0:
+                print (id1, id2, "is crossing with ", id1_, id2_)
+                return False
+            
+            
+    for node in available_nodes:
+        _, x3, y3 = node
+
+        # Check if the node lies within the bounds of the connection
+        in_bound_of_connection = (
+            (x1 == x2 and min(y1, y2) < y3 < max(y1, y2) and x3 == x1) or  # Vertical connection
+            (y1 == y2 and min(x1, x2) < x3 < max(x1, x2) and y3 == y1) or  # Horizontal connection
+            (min(x1, x2) < x3 < max(x1, x2) and min(y1, y2) < y3 < max(y1, y2))  # Diagonal connection
+        )
+
+        if abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2)) == 0 and in_bound_of_connection:  # calculate triangle area
+            print(f'connection {x1, y1}, {x2, y2} is crossing with point: {node}')
+            return False
+                    
     print("WORKING")
     return True
 
@@ -73,7 +85,7 @@ def connection_is_possible(x1, y1, x2, y2):
 
 
 
-base_nodes = {
+base = {
     "nodes": [
         [0.0, 0, 0],
         [2.0, 2, 0],
@@ -93,27 +105,29 @@ base_nodes = {
 
 bridge = {
     "nodes": [
-        [1.2, 1, 2],
-        [2.1, 2, 1],
-        [5.2, 5, 2]
+        [1.1, 1, 1],
+        [3.1, 3, 1],
+        [5.1, 5, 1],
+        [2.1, 2, 1]
     ],
     "connections": [
-        [0.0, 1.2],
-        [1.2, 2.1],
-        #[2.1, 2.0],
-        [2.1, 4.0],
-        [1.2, 5.2],
-        [5.2, 4.0],
-        [5.2, 6.0],
+        [0.0, 1.1],
+        [2.0, 1.1],
+        [2.0, 3.1],
+        [4.0, 3.1],
+        [4.0, 5.1],
+        [6.0, 5.1],
+        # [1.1, 3.1],
+        [3.1, 5.1],
     ]
 }
 
 
 
 bridge_connections = bridge["connections"]
-all_connections = bridge["connections"] + base_nodes["connections"]
+all_connections = bridge["connections"] + base["connections"]
 
-base_nodes = base_nodes["nodes"]
+base_nodes = base["nodes"]
 bridge_nodes = bridge["nodes"]
 available_nodes = bridge_nodes + base_nodes
 
@@ -162,3 +176,11 @@ if random.random() < mutate_connection_probability:  # random.random() generates
         
         if connection_found:
             print("new connection at: ", id1, id2)
+        else:
+            print("NO CONNECTION POSSIBLE")
+
+
+
+# 
+# MUTATE POINTS (check for each connection that connects to mutated point if it is still possible. if not, move point in other direction / move other point) 
+#
