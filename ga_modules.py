@@ -3,7 +3,7 @@
 
 
 
-def getCoords(id, all_nodes):
+def get_coords(id, all_nodes):
     for node in all_nodes:
         if node[0] == id:
             return node[1], node[2]
@@ -29,15 +29,33 @@ def calcRotation(point1, point2, point3, all_nodes):
 
 
 def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting):
-    x1, y1 = getCoords(id1, all_nodes)
-    x2, y2 = getCoords(id2, all_nodes)
+    x1, y1 = get_coords(id1, all_nodes)
+    x2, y2 = get_coords(id2, all_nodes)
+
+    # remove node (id1, id2) from all_connections first. so it is not compared to itself, while not removing duplicates
+    
+    removed = False
+    filtered_connections = []
+    for connection in all_connections:
+        if not removed and connection[0] == id1 and connection[1] == id2:
+            removed = True
+            continue  # Skip this connection
+        filtered_connections.append(connection)
+
+    all_connections = filtered_connections
+    
+    # id which we are testing for isn't even in all_connections! <- this is from initialization
 
     for connection in all_connections:
         id1_, id2_ = connection
+        
         if min(id1, id2) == min(id1_, id2_) and max(id1, id2) == max(id1_, id2_):
-            continue
-        [x1_, y1_] = getCoords(id1_, all_nodes)
-        [x2_, y2_] = getCoords(id2_, all_nodes)
+            print("ERROR: duplicate node") # isnt this ruled out by overlay calculations later?
+            return False #or continue?
+        
+        
+        [x1_, y1_] = get_coords(id1_, all_nodes)
+        [x2_, y2_] = get_coords(id2_, all_nodes)
 
         
         print("con1: ", id1, id2, "con2: ", id1_, id2_)
@@ -89,6 +107,7 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
                 ]
                 print(split_c1, split_c2)
                 return split_c1, split_c2
+                                    
             return False
                     
     print("WORKING")

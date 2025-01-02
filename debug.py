@@ -1,4 +1,9 @@
+
 import ga_modules
+import json
+
+
+
 
 base = {
     "nodes": [
@@ -20,37 +25,30 @@ base = {
 
 bridge = {
     "nodes": [
-        [1.1, 1, 1],
-        [3.1, 3, 1],
-        [5.1, 5, 1],
-        [2.1, 2, 1] #
+        [1.1, 1, 1], [4.3, 4, 3], [5.1, 5, 1], [0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0]
     ],
     "connections": [
-        [0.0, 1.1],
-        [2.0, 1.1],
-        [2.0, 3.1],
-        [4.0, 3.1],
-        [4.0, 5.1],
-        [6.0, 5.1],
-        # [1.1, 3.1],
-        [3.1, 5.1],
+        [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [4.2, 1.1], [1.1, 6.0], [6.1, 6.0], [1.1, 2.0], [2.0, 4.0], [4.0, 1.1], [1.1, 6.0], [6.0, 6.0], [2.0, 4.0], [4.2, 4.1], [4.1, 6.0], [6.0, 6.0]]
     ]
 }
 
-all_connections = base["connections"] + bridge["connections"]
-all_nodes = base["nodes"] + bridge["nodes"]
+all_connections = [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [4.2, 1.1], [1.1, 6.0], [6.1, 6.0], [1.1, 2.0], [2.0, 4.0], [4.0, 1.1], [1.1, 6.0], [6.0, 6.0], [2.0, 4.0], [4.2, 4.1], [4.1, 6.0], [6.0, 6.0]]
+all_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [2.2, 2, 2], [6.1, 6, 1], [4.2, 4, 2], [1.1, 1, 1], [4.1, 4, 1], [5.0, 5, 0]]
 
-if ga_modules.connection_is_possible(1.1, 0.0, all_connections, all_nodes):
-    print("POSSIBLE")
-else:
-    print("NO!")
+'''
+for connection in all_connections:
+    id1, id2 = connection
+
+    if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) == True: # is also true if connections are on top of each other. prevent this!
+        print("POSSIBLE", id1, id2)
+    else:
+        print("NO!", id1, id2)
+'''
 
 
-child_connections = [
-    connection for connection in bridge["connections"]
-    if ga_modules.connection_is_possible(connection[0], connection[1], all_connections, all_nodes)
-]
 
-print("Filtered child_connections:", child_connections)
 
-# i know the problem. it also checks the existing connection!
+
+
+
+

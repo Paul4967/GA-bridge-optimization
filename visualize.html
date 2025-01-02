@@ -14,6 +14,7 @@
 <body>
     <h1 style="text-align: center;">Bridge Visualization</h1>
     <canvas id="bridgeCanvas" width="1000" height="400"></canvas>
+    <button onclick="fetchData()">Load JSON Data</button>
 
     <script>
         const canvas = document.getElementById('bridgeCanvas');
@@ -29,16 +30,35 @@
         let childNodes = [];
         let childConnections = [];
 
-        // Connect to WebSocket server
-        const socket = new WebSocket('ws://localhost:8080');
+    
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            childNodes = data.childNodes;
-            childConnections = data.childConnections;
+        function fetchData() {
+            // Specify the URL of the JSON file (replace with the actual URL if necessary)
+            const jsonUrl = 'connections_and_nodes.json'; // Example: 'connections_and_nodes.json'
 
-            drawBridge();
-        };
+            // Fetch the JSON data
+            fetch(jsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Store the JSON data in the arrays
+                    childConnections = data.all_connections;
+                    childNodes = data.all_nodes;
+
+                    // Log the arrays to the console to verify the data
+                    console.log('All Connections:', childConnections);
+                    console.log('All Nodes:', childNodes);
+                    drawBridge();
+                    // You can use the data here as needed
+                })
+                .catch(error => {
+                    console.error('Error fetching JSON:', error);
+                });
+        }
+        setInterval(fetchData, 100);
+
+
+
+
 
         // Combine baseNodes and childNodes for easier visualization
         function getAllNodes() {

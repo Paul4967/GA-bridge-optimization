@@ -3,3 +3,6 @@
 # can contain arrays, objects, variables, functions, ...
 
 import crossover as co
+
+
+## pass params like build domain, ... via functions -> or is feather / parquet more efficient? -> when will it be loaded? every time the function is called?
