@@ -7,7 +7,7 @@ import json
 import importlib
 importlib.reload(ga_modules)
 
-def node_is_existing(node_x, node_y):
+def node_is_existing(node_x, node_y, bridge_nodes):
     for node in bridge_nodes:
         if node[1] == node_x and node[2] == node_y:
             return True
@@ -20,9 +20,9 @@ def node_intersecting_connection(node_x, node_y, base_connections, base_nodes):
 
         # Check if the node lies within the bounds of the connection
         in_bound_of_connection = (
-            (x1 == x2 and min(y1, y2) <= node_y <= max(y1, y2) and node_x == x1) or  # Vertical connection EDIT HERE
-            (y1 == y2 and min(x1, x2) <= node_x <= max(x1, x2) and node_y == y1) or  # Horizontal connection EDIT HERE
-            (min(x1, x2) <= node_x <= max(x1, x2) and min(y1, y2) <= node_y <= max(y1, y2))  # Diagonal connection EDIT HERE!!!!
+            (x1 == x2 and min(y1, y2) <= node_y <= max(y1, y2) and node_x == x1) or  # Vertical connection
+            (y1 == y2 and min(x1, x2) <= node_x <= max(x1, x2) and node_y == y1) or  # Horizontal connection 
+            (min(x1, x2) <= node_x <= max(x1, x2) and min(y1, y2) <= node_y <= max(y1, y2))  # Diagonal connection
         )
         if abs(x1*(y2 - node_y) + x2*(node_y - y1) + node_x*(y1 - y2)) == 0 and in_bound_of_connection:  # calculate triangle area
             print(f'connection {x1, y1}, {x2, y2} is crossing with point: {node_x, node_y}')
@@ -30,7 +30,7 @@ def node_intersecting_connection(node_x, node_y, base_connections, base_nodes):
     return False
 
 
-
+'''
 base = {
     "nodes": [
         [0.0, 0, 0],
@@ -56,87 +56,94 @@ base_connections = base["connections"]
 
 build_domain = 6, 2 # bottom and left are always at 0
 
-build_domain_x = build_domain[0]
-build_domain_y = build_domain[1]
+
 
 max_node_percentage = 0.6    # basenodes are excluded
 min_node_percentage = 0.25
+'''
+
+def initialize(base_nodes, base_connections, min_node_percentage, max_node_percentage, build_domain):
+    build_domain_x = build_domain[0]
+    build_domain_y = build_domain[1]
 
 
-node_num = round(random.uniform(min_node_percentage, max_node_percentage) * (build_domain_x * build_domain_y))
+    node_num = round(random.uniform(min_node_percentage, max_node_percentage) * (build_domain_x * build_domain_y))
 
-bridge_nodes = []
-i = 0
-while i < node_num:
-    # generate random nodes
-    node_x = random.randint(0, build_domain_x)
-    node_y = random.randint(0, build_domain_y)
+    bridge_nodes = []
+    i = 0
+    while i < node_num:
+        # generate random nodes
+        node_x = random.randint(0, build_domain_x)
+        node_y = random.randint(0, build_domain_y)
 
-    if node_is_existing(node_x, node_y) or node_intersecting_connection(node_x, node_y, base_connections, base_nodes): 
-        continue # pick other random coords             #### or move node on x and then on y axis to next free spot
+        if node_is_existing(node_x, node_y, bridge_nodes) or node_intersecting_connection(node_x, node_y, base_connections, base_nodes): 
+            continue # pick other random coords             #### or move node on x and then on y axis to next free spot
 
-    node = [
-        node_x + node_y / (10 ** len(str(int(node_y)))), # id, x, y
-        node_x, 
-        node_y
-    ]
-    bridge_nodes.append(node)
-    i += 1
-
-
-
-
-###### how can it still be basenode?: NODES:  [[1.2, 1, 2], [5.1, 5, 1], [2.0, 2, 0], [3.2, 3, 2], [0.1, 0, 1], [4.0, 4, 0], [6.1, 6, 1]]
-###### -> because only checked if it lies on connection and not on point
-'''NODE PLACEMENT: shuffled list with all possible locations. select first few nodes'''
-
+        node = [
+            node_x + node_y / (10 ** len(str(int(node_y)))), # id, x, y
+            node_x, 
+            node_y
+        ]
+        bridge_nodes.append(node)
+        i += 1
 
 
 
 
-### make random connections ### ------------------------------------------------
+    ###### how can it still be basenode?: NODES:  [[1.2, 1, 2], [5.1, 5, 1], [2.0, 2, 0], [3.2, 3, 2], [0.1, 0, 1], [4.0, 4, 0], [6.1, 6, 1]]
+    ###### -> because only checked if it lies on connection and not on point
+    '''NODE PLACEMENT: shuffled list with all possible locations. select first few nodes'''
 
 
-bridge_connections = []
-all_connections = base_connections + bridge_connections
-all_nodes = bridge_nodes + base_nodes
-# connect_to = bridge_nodes[:]
-for i in range(2):
-    for node in bridge_nodes:
-        id1 = node[0]
-        random.shuffle(all_nodes)
-        for next_node in all_nodes:
-            id2 = next_node[0]
-            if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) is False or id1 is id2:
-                continue
-            else:
-                new_connection = [id1, id2]
-                bridge_connections.append(new_connection)
-                all_connections.append(new_connection)
-                break
 
-for node in base_nodes:
-        id1 = node[0]
-        random.shuffle(all_nodes)
-        for next_node in all_nodes:
-            id2 = next_node[0]
-            if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) is False or id1 is id2:
-                continue
-            else:
-                new_connection = [id1, id2]
-                bridge_connections.append(new_connection)
-                all_connections.append(new_connection)
-                break
 
-print("ALL CONNECTIONS: ", all_connections)
-print("CONNECTIONS: ", bridge_connections)
-print("NODES: ", bridge_nodes)
+
+    ### make random connections ### ------------------------------------------------
+
+
+    bridge_connections = []
+    all_connections = base_connections + bridge_connections
+    all_nodes = bridge_nodes + base_nodes
+    # connect_to = bridge_nodes[:]
+    for _ in range(2):
+        for node in bridge_nodes:
+            id1 = node[0]
+            random.shuffle(all_nodes)
+            for next_node in all_nodes:
+                id2 = next_node[0]
+                if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) is False or id1 is id2:
+                    continue
+                else:
+                    new_connection = [id1, id2]
+                    bridge_connections.append(new_connection)
+                    all_connections.append(new_connection)
+                    break
+
+    for node in base_nodes:
+            id1 = node[0]
+            random.shuffle(all_nodes)
+            for next_node in all_nodes:
+                id2 = next_node[0]
+                if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) is False or id1 is id2:
+                    continue
+                else:
+                    new_connection = [id1, id2]
+                    bridge_connections.append(new_connection)
+                    all_connections.append(new_connection)
+                    break
+
+    print("ALL CONNECTIONS: ", all_connections)
+    print("CONNECTIONS: ", bridge_connections)
+    print("NODES: ", bridge_nodes)
+    return bridge_nodes, bridge_connections
+
+
 
 
 
 
 ### EXPORT ### --------------------------------------------------------
-
+'''
 data = {
     "all_connections": all_connections,
     "all_nodes": all_nodes
@@ -154,3 +161,5 @@ print("saved to file")
 
 
 ### Initialization finished
+
+'''

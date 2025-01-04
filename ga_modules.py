@@ -33,7 +33,7 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
     x2, y2 = get_coords(id2, all_nodes)
 
     # remove node (id1, id2) from all_connections first. so it is not compared to itself, while not removing duplicates
-    
+    '''
     removed = False
     filtered_connections = []
     for connection in all_connections:
@@ -43,7 +43,7 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
         filtered_connections.append(connection)
 
     all_connections = filtered_connections
-    
+    '''
     # id which we are testing for isn't even in all_connections! <- this is from initialization
 
     for connection in all_connections:
@@ -112,3 +112,15 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
                     
     print("WORKING")
     return True
+
+
+def filter_connections(id1, id2, all_connections):
+    removed = False
+    filtered_connections = []
+    for connection in all_connections:
+        if not removed and connection[0] == id1 and connection[1] == id2:
+            removed = True
+            continue  # Skip this connection
+        filtered_connections.append(connection)
+
+    return filtered_connections

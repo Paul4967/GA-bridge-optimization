@@ -90,7 +90,7 @@ def calc_fitness(all_connections, all_nodes):
 
     ### convert connection format ### -----------------------------------------
 
-
+    
     id_to_index = {node[1]: node[0] for node in all_nodes_}
     print("ID to Index Mapping:", id_to_index)
     all_connections_ = [
@@ -147,19 +147,14 @@ def calc_fitness(all_connections, all_nodes):
             self.y_support = y_support
 
     materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
-    loads = [Load(2, 0, -1000), Load(3, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
-    supports = [Support(1, True, True), Support(4, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
+    loads = [Load(5, 0, -1000), Load(6, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
+    supports = [Support(4, True, True), Support(7, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
 
 
 
-    ### ANALYZE ### ---------------------------------------------------------
-
-    try:
-        print(converted_members)
-        displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
-    except Exception as e:
-        print(f"Error during truss analysis: {e}")
-        return 0, 0, 0
+    ### ANALYZE ###
+    print(converted_members)
+    displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
 
     print("Nodal Displacements:")
     for node, displacement in displacements.items():
@@ -221,17 +216,14 @@ def calc_fitness(all_connections, all_nodes):
     w1 = 1
     w2 = 1
     w3 = 1
-    max_absolute_force = float(max_absolute_force)
-    force_variance = float(force_variance)
 
-    fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))) * 100
+    fitness = w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))
 
     return fitness, weight, max_absolute_force
 
 
 # print("RETUNR: ", calc_fitness(bridge["connections"] + base["connections"], bridge["nodes"] + base["nodes"]))
-print("RETUNR 2: ", calc_fitness([[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [0.0, 0.2], [4.1, 5.2], [4.1, 6.0], [5.2, 6.0], [0.0, 5.2], [2.0, 4.1], [4.0, 4.1], [0.2, 5.2]], 
-                                 [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [0.2, 0, 2], [4.1, 4, 1], [5.2, 5, 2]]))
+print("RETUNR 2: ", calc_fitness([[2.2, 2.0], [0.1, 0.0], [3.2, 6.0], [0.1, 2.2], [3.2, 2.2], [0.0, 2.2], [4.0, 3.2], [3.1, 3.2], [3.1, 2.0], [0.0, 2.0], [2.0, 4.0], [4.0, 6.0]], [[3.2, 3, 2], [2.2, 2, 2], [0.1, 0, 1], [3.1, 3, 1], [0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0]]))
 # all_connections = bridge["connections"] + base["connections"]
 # all_nodes = bridge["nodes"] + base["nodes"]
 

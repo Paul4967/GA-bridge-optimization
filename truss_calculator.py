@@ -83,10 +83,14 @@ def assemble_load_vector(nodes, loads):
     return F
 
 def solve_displacements(K, F):
-    displacements = np.linalg.solve(K, F)
-    return displacements
+    try: 
+        displacements = np.linalg.solve(K, F)
+        return displacements
+    except np.linalg.LinAlgError:
+        print("Error: Singular matrix - truss not solvable.")
+        return None  # or any other indicator like 'truss_not_solvable'
 
-def calculate_internal_forces(members, materials, displacements):
+def calculate_internal_forces(members, materials, displacements, nodes):
     internal_forces = {}
     for member in members:
         material = materials[member.material_id - 1]
@@ -130,11 +134,12 @@ def analyze_truss(nodes, members, materials, loads, supports):
     K_global = apply_supports(K_global, supports)
     F = assemble_load_vector(nodes, loads)
     displacements = solve_displacements(K_global, F)
-    forces = calculate_internal_forces(members, materials, displacements)
+    forces = calculate_internal_forces(members, materials, displacements, nodes)
     stress_strain = compute_stress_strain(members, materials, forces)
     formatted_displacements = format_nodal_displacements(displacements)
     return formatted_displacements, forces, stress_strain
 
+'''
 nodes = [Node(1, 1, 1),
 Node(2, 3, 1),
 Node(3, 5, 1),
@@ -150,6 +155,8 @@ materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and 
 loads = [Load(5, 0, -1000), Load(6, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
 supports = [Support(4, True, True), Support(7, False, True)]
 
+
+
 if __name__ == "__main__":
     displacements, forces, stress_strain = analyze_truss(nodes, members, materials, loads, supports)
 
@@ -161,7 +168,7 @@ if __name__ == "__main__":
     for member_id, values in stress_strain.items():
         print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")
 
-
+'''
 
 end_time = time.perf_counter()
 

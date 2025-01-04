@@ -1,0 +1,89 @@
+body{
+    margin: 0;
+    display: flex;
+}
+
+
+
+.sidebar-container{
+    width: 300px;
+    height: 100%;
+}
+.bridgenetic{
+    padding-left: 20px;
+    padding-top: 10px;
+    font-family: "Orbit", serif;
+    font-size: 22px;
+}
+.sidebar{
+    padding: 20px;
+}
+
+
+.visualization{
+    background-color: #F4F4F4;
+    height: 100vh;
+    flex-grow: 1;
+}
+
+h2{
+    font-family: "Inter", serif;
+    font-size: 16px;
+    font-weight: 400;
+}
+h3{
+    font-family: "Inter", serif;
+    font-size: 13px;
+    color: #888888;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.input-container-outer{
+    display: flex;
+    column-gap: 10px;
+}
+
+input {
+    border: none; /* Removes the default border */
+    outline: none; /* Removes the default focus outline */
+    padding: 5px; /* Adds some padding for better usability */
+    font-size: 13px; /* Adjusts the font size */
+    font-family: "Inter", serif;
+    border-radius: 4px; /* Optional: Rounds the corners */
+    transition: border 0s ease-in-out; /* Smooth transition for border changes */
+    background: none;
+    width: 100%;
+}
+
+.input-container{
+    background-color: #efefef;
+    border-radius: 4px;
+    border: 1px solid transparent; /* No border initially */
+    display: flex;
+    align-items: center;
+    width: 100px;
+    transition: border 0.2s ease-in-out;
+    height: 22px;
+}
+
+/* Style the container when any element inside it (like input) is focused */
+.input-container:focus-within {
+    border: 1px solid #0d99ff; /* Adds a 1px blue border */
+}
+
+.input-unit{
+    font-family: "Inter", serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #9c9c9c;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.section-seperator{
+    width: 100%;
+    height: 1px;
+    background-color: #D6D6D6;
+    margin-top: 10px;
+}
