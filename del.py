@@ -86,12 +86,6 @@ def delete_node(bridge_nodes, all_nodes, bridge_connections):
 
 def mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_connections, build_area, grid_size, max_node_offset_multiplier):
 
-    #### ERROR PREVENTION
-    filtered_connections = [connection for connection in bridge_connections if connection[0] != connection[1]]
-    bridge_connections = filtered_connections
-    ###------------------
-    
-    
     max_shift_distance = max_node_offset_multiplier
 
     old_id, x, y = random.choice(bridge_nodes)
@@ -142,7 +136,6 @@ def mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_co
         
         # UPDATE AFFECTED CONNECTIONS
         updated_affected_connections = copy.deepcopy(affected_connections)
-
         for i, connection in enumerate(updated_affected_connections):
             id1, id2 = connection
             if id1 == old_id:
@@ -165,8 +158,7 @@ def mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_co
 
         print(" \n U AFFECTED C: ", updated_affected_connections)
 
-        ################# NEW_ALL_CONNECTIONS STILL HAVE OLD ID -> because if we have this: [4.2, 4.2] -> only one gets updated
-        #################-> probalby in updated_affected_connections! ===> fix: remove single point connections from bridge_connections^^
+        #################
 
 
         # check if movement of connection causes crossing, or...
@@ -292,14 +284,15 @@ def mutate(mutate_node_probability, mutate_connection_probability, max_node_offs
                 all_connections = base_connections + bridge_connections
                 create_c = True
         
-        
+        ''' # IS WORKING! BUT TURNED OFF BECAUSE TOO MANY NODES GET DELETED BECAUSE WEIGHT HAS A TOO HIGH INFLUENCE!
         # node mutation
-        if random.random() < mutate_node_probability and len(bridge_nodes) > 1:  # error prevention
+        if random.random() < mutate_node_probability:
             del_n = True
             # delete node (and associated connections)
             bridge_connections, bridge_nodes, all_nodes = delete_node(bridge_nodes, all_nodes, bridge_connections)
             all_connections = base_connections + bridge_connections
-        
+        '''
+        ###^^ adapt script to work with return format
         
         if random.random() < mutate_node_probability:
             # create random node
@@ -309,16 +302,16 @@ def mutate(mutate_node_probability, mutate_connection_probability, max_node_offs
                 all_connections = base_connections + bridge_connections
                 all_nodes = base_nodes + bridge_nodes
                 create_n = True
-        
+        '''
         
         if random.random() < mutate_node_probability:
             # mutate node
             result = mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_connections, build_area, grid_size, max_node_offset_multiplier)
             if result is not False:  # Proceed only if the function does not return False
-                all_nodes, all_connections, bridge_connections, bridge_nodes = result
+                all_connections, all_nodes, bridge_connections, bridge_nodes = result
                 print("MUTATED NODE")
                 move_node = True
-        
+        '''
     print(f'C del: {delete_c}|| C created: {create_c}|| N del: {del_n}|| N created: {create_n}|| N moved: {move_node}')
     return bridge_connections, bridge_nodes
 
@@ -336,7 +329,67 @@ def mutate(mutate_node_probability, mutate_connection_probability, max_node_offs
 
 
 
-'''
+
+base = {
+    "nodes": [
+        [0.0, 0, 0],
+        [2.0, 2, 0],
+        [4.0, 4, 0],
+        [6.0, 6, 0],
+        # ["b1", 0, 0],
+        # ["b2", 2, 0],
+        # ["b3", 4, 0],
+        # ["b4", 6, 0],
+    ],
+    "connections": [
+        [0.0, 2.0],
+        [2.0, 4.0],
+        [4.0, 6.0]
+    ]
+}
+
+bridge = {
+    "nodes": [
+        [1.1, 1, 1],
+        [3.1, 3, 1],
+        [5.1, 5, 1],
+        # [2.1, 2, 1]
+    ],
+    "connections": [
+        [0.0, 1.1],
+        [2.0, 1.1],
+        [2.0, 3.1],
+        [4.0, 3.1],
+        [4.0, 5.1],
+        [6.0, 5.1],
+        [1.1, 3.1],
+        [3.1, 5.1]
+    ]
+}
+
+
+
+
+bridge_connections = bridge["connections"]
+all_connections = bridge["connections"] + base["connections"]
+base_connections = base["connections"]
+
+base_nodes = base["nodes"]
+bridge_nodes = bridge["nodes"]
+all_nodes = bridge_nodes + base_nodes
+
+build_area = 6, 3
+max_node_offset_multiplier = 1
+grid_size = 1
+
+
+# warum ist output hier manchmal false? -> weil affected connections manchmal empty ist!
+all_nodes, all_connections, bridge_connections, bridge_nodes =  mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_connections, build_area, grid_size, 2)
+print("BRIDGE CON: ", bridge_connections)
+print("\n\n BRIDGE NODES: ", bridge_nodes)
+print("\n ALL_ CON: ", all_connections)
+# error 1: bridge connections werden überschrieben (gut!), aber nodes nicht
+
 
 ### EXPORT ### --------------------------------------------------------
 
@@ -354,4 +407,5 @@ file_path
 
 print("saved to file")
 
-'''
+
+### MUTATION IS RUNNING (have i implemented creating new beams?)

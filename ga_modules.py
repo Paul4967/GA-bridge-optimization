@@ -58,7 +58,7 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
         [x2_, y2_] = get_coords(id2_, all_nodes)
 
         
-        print("con1: ", id1, id2, "con2: ", id1_, id2_)
+        # print("con1: ", id1, id2, "con2: ", id1_, id2_)
         slope1 = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf') # slope of new theoretical connection
         slope2 = (y2_ - y1_) / (x2_ - x1_) if x2_ != x1_ else float('inf')
 

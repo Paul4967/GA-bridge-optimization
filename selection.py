@@ -9,7 +9,7 @@ import random
 
 
 
-def tournament_selection(population, fitnesses, k, num_selections):
+def tournament_selection(population, fitnesses, k, num_selections): # k = tournament size
     selected = []
     for _ in range(num_selections):
         tournament = random.sample(range(len(population)), k)

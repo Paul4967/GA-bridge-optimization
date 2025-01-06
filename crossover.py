@@ -6,58 +6,7 @@ import ga_modules
 
 
 '''
-base_nodes = {
-    "nodes": [
-        [0.0, 0, 0],
-        [2.0, 2, 0],
-        [4.0, 4, 0],
-        [6.0, 6, 0],
-        # ["b1", 0, 0],
-        # ["b2", 2, 0],
-        # ["b3", 4, 0],
-        # ["b4", 6, 0],
-    ],
-    "connections": [
-        [0.0, 2.0],
-        [2.0, 4.0],
-        [4.0, 6.0]
-    ]
-}
 
-bridge1 = {
-    "nodes": [
-        [1.2, 1, 2],
-        [2.1, 2, 1],
-        [5.2, 5, 2]
-    ],
-    "connections": [
-        [0.0, 1.2],
-        [1.2, 2.1],
-        [2.1, 2.0],
-        [2.1, 4.0],
-        [1.2, 5.2],
-        [5.2, 4.0],
-        [5.2, 6.0],
-    ]
-}
-
-bridge2 = {
-    "nodes": [
-        [1.1, 1, 1],
-        [3.1, 3, 1],
-        [5.1, 5, 1]
-    ],
-    "connections": [
-        [0.0, 1.1],
-        [2.0, 1.1],
-        [2.0, 3.1],
-        [4.0, 3.1],
-        [4.0, 5.1],
-        [6.0, 5.1],
-        [1.1, 3.1],
-        [3.1, 5.1],
-    ]
-}
 
 
 #
@@ -74,6 +23,12 @@ all_nodes = bridge1["nodes"] + bridge2["nodes"]
 def crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge1_connections, bridge2_connections):
 
     all_nodes = bridge1_nodes + bridge2_nodes
+
+    # DELETE ALL BASE_NODES!! ----> error prevention
+    base_ids = {node[0] for node in base_nodes}
+    filtered_nodes = [node for node in all_nodes if node[0] not in base_ids]
+    all_nodes = filtered_nodes
+    # ----------------------------------------------
 
     child_nodes = []
     seen = []
@@ -194,9 +149,13 @@ def crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge
     ### CHECK IF CONNECTION IS POSSIBLE:
 
 
-    i = 0
     all_available_connections = child_connections + base_connections
     all__nodes = child_nodes + base_nodes
+
+    print("ALL_AV_C: ", all_available_connections)
+    print("CHILD_CONNECTIONS: ", child_connections)
+    print("ALL__NODES: ", all__nodes)
+
     i = 0
     while i < len(child_connections):
         id1, id2 = child_connections[i]
@@ -211,6 +170,11 @@ def crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge
             c1, c2 = result
             child_connections.append(c1)
             child_connections.append(c2)
+            ### error fix all_available_connections[i] out of range?: in theory: not neccesary to check index past initial lenght.
+            all_available_connections.append(c1)
+            all_available_connections.append(c2)
+            #--------------------------------------------------------
+
             # all_available_connections.append(result)
             print("APPENDING", c1, c2)
             print("CHILD CONN: ", child_connections)
@@ -244,9 +208,78 @@ def crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge
 
 
 
+### DEBUG ---------------------------------
 
 
 
+
+
+
+
+
+base_nodes_ = {
+    "nodes": [
+        [0.0, 0, 0],
+        [2.0, 2, 0],
+        [4.0, 4, 0],
+        [6.0, 6, 0],
+        [6.0, 6, 0]
+        # ["b1", 0, 0],
+        # ["b2", 2, 0],
+        # ["b3", 4, 0],
+        # ["b4", 6, 0],
+    ],
+    "connections": [
+        [0.0, 2.0],
+        [2.0, 4.0],
+        [4.0, 6.0]
+    ]
+}
+
+bridge1 = {
+    "nodes": [
+        [1.2, 1, 2],
+        [2.1, 2, 1],
+        [5.2, 5, 2],
+    ],
+    "connections": [
+        [0.0, 1.2],
+        [1.2, 2.1],
+        [2.1, 2.0],
+        [2.1, 4.0],
+        [1.2, 5.2],
+        [5.2, 4.0],
+        [5.2, 6.0],
+    ]
+}
+
+bridge2 = {
+    "nodes": [
+        [1.1, 1, 1],
+        [3.1, 3, 1],
+        [5.1, 5, 1]
+    ],
+    "connections": [
+        [0.0, 1.1],
+        [2.0, 1.1],
+        [2.0, 3.1],
+        [4.0, 3.1],
+        [4.0, 5.1],
+        [6.0, 5.1],
+        [1.1, 3.1],
+        [3.1, 5.1]
+    ]
+}
+
+base_nodes = base_nodes_["nodes"]
+base_connections = base_nodes_["connections"]
+bridge1_nodes = bridge1["nodes"]
+bridge2_nodes = bridge2["nodes"]
+bridge1_connections = bridge1["connections"]
+bridge2_connections = bridge2["connections"]
+
+
+print(crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge1_connections, bridge2_connections))
 
 '''
 ### EXPORT ### --------------------------------------------------------

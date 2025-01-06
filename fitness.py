@@ -159,7 +159,7 @@ def calc_fitness(all_connections, all_nodes):
         displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
     except Exception as e:
         print(f"Error during truss analysis: {e}")
-        return 0, 0, 0
+        return 0, 0, 0, 0
 
     print("Nodal Displacements:")
     for node, displacement in displacements.items():
@@ -219,23 +219,42 @@ def calc_fitness(all_connections, all_nodes):
     ### OVERALL FITNESS EQUATION ### -----------------------------------------
     # weights
     w1 = 1
-    w2 = 1
+    w2 = 0.01
     w3 = 1
     max_absolute_force = float(max_absolute_force)
     force_variance = float(force_variance)
+    
+    # fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))) * 100
+    fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))) * 100
 
-    fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))) * 100
+    return fitness, weight, max_absolute_force, forces.values()
 
-    return fitness, weight, max_absolute_force
+
+
+
+### FOR VISUALIZING FITTEST INDIVIDUAL ### ------------------------
+
+
+
+
+
+
+
+
+
 
 
 # print("RETUNR: ", calc_fitness(bridge["connections"] + base["connections"], bridge["nodes"] + base["nodes"]))
-print("RETUNR 2: ", calc_fitness([[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [0.0, 0.2], [4.1, 5.2], [4.1, 6.0], [5.2, 6.0], [0.0, 5.2], [2.0, 4.1], [4.0, 4.1], [0.2, 5.2]], 
-                                 [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [0.2, 0, 2], [4.1, 4, 1], [5.2, 5, 2]]))
+print("RETUNR 2: ", calc_fitness([[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [4.2, 4.0], [3.2, 4.2],  
+                               [4.2, 6.0], [3.2, 4.0], [3.2, 0.0], [2.0, 3.2]], 
+                                 [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], 
+                         [4.2, 4, 2], [3.2, 3, 2]]))
 # all_connections = bridge["connections"] + base["connections"]
 # all_nodes = bridge["nodes"] + base["nodes"]
 
-###########################
+
+
+########################### TRUSS CALCULATOR WORKS!!!
 ###########################
 ###########################
 ###########################
