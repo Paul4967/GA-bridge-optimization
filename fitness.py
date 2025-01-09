@@ -219,7 +219,7 @@ def calc_fitness(all_connections, all_nodes):
     ### OVERALL FITNESS EQUATION ### -----------------------------------------
     # weights
     w1 = 1
-    w2 = 0.01
+    w2 = 10 # because 1/max force is way smaller than weight
     w3 = 1
     max_absolute_force = float(max_absolute_force)
     force_variance = float(force_variance)
@@ -234,14 +234,32 @@ def calc_fitness(all_connections, all_nodes):
 
 ### FOR VISUALIZING FITTEST INDIVIDUAL ### ------------------------
 
+all_connections =  [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [2.0, 2.1], [2.1, 1.2], [4.0, 5.1], [3.2, 4.3], [3.2, 3.1], [2.0, 1.1], [0.2, 0.0], [0.3, 1.3], [0.3, 0.2], [1.2, 2.2], [5.1, 6.0], [1.2, 0.0], [2.2, 3.1], [3.1, 4.0], [6.0, 6.1], [0.0, 1.3], [3.1, 2.0], [0.2, 1.3], [3.1, 1.2], [5.1, 6.1], [3.1, 5.1], [2.2, 1.3], [6.2, 6.1], [1.2, 1.3], [1.1, 0.0], [1.1, 1.2], [6.2, 6.3], [4.3, 6.3], [4.3, 2.2], [4.3, 1.3], [4.3, 6.1], [4.3, 3.1], [4.3, 5.1], [3.1, 2.1], [1.1, 2.1], [6.2, 4.3], [4.2, 4.3], [4.2, 5.1]]
+all_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [6.1, 6, 1], [1.2, 1, 2], [6.2, 6, 2], [1.3, 1, 3], [0.2, 0, 2], [1.1, 1, 1], [3.2, 3, 2], [0.3, 0, 3], [5.1, 5, 1], [6.3, 6, 3], [2.2, 2, 2], [4.3, 4, 3], [3.1, 3, 1], [2.1, 2, 1], [4.2, 4, 2]]
+_, _, _, result = calc_fitness(all_connections, all_nodes)
+print("\n\nFORCES::", result)
+### population_manager: wrong fitness requested? -> ..._vis is wrong?
+
+### WRITE FORCES TO JSON CAN JSON:
+result = [float(f) for f in result]
+import json
+data = {
+    "forces":result
+}
+
+# Save the data to a json file
+file_path = 'connections_and_nodes.json'
+with open(file_path, 'w') as f:
+    json.dump(data, f)
+
+file_path
+
+print("saved to file")
 
 
 
 
-
-
-
-
+############################################################
 
 
 # print("RETUNR: ", calc_fitness(bridge["connections"] + base["connections"], bridge["nodes"] + base["nodes"]))

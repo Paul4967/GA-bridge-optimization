@@ -293,8 +293,9 @@ def mutate(mutate_node_probability, mutate_connection_probability, max_node_offs
                 create_c = True
         
         
+        
         # node mutation
-        if random.random() < mutate_node_probability and len(bridge_nodes) > 1:  # error prevention
+        if random.random() < mutate_node_probability and len(bridge_nodes) > 3:  # error prevention -> SET TO 1!!!
             del_n = True
             # delete node (and associated connections)
             bridge_connections, bridge_nodes, all_nodes = delete_node(bridge_nodes, all_nodes, bridge_connections)

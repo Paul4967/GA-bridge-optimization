@@ -141,7 +141,7 @@ min_mutation_amplifier = 1
 
 # SELECTION
 # 10?
-tournament_size = 10
+tournament_size = 12
 num_selections = 50
 
 
@@ -167,7 +167,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 50:
+while i < 75:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
@@ -309,17 +309,19 @@ while i < 50:
     ### GET ALL FORCES OF FITTEST INDIVIDUAL
     all_connections_vis = base_connections + bridge_connections_vis
     all_nodes_vis = base_nodes + bridge_nodes_vis
-    _, _, _, forces = ftns.calc_fitness(copy.deepcopy(all_connections_vis), copy.deepcopy(all_nodes_vis))
-
+    _, _, _, forces = ftns.calc_fitness(all_connections_vis, all_nodes_vis)
+    print("FORCES1 : : : ", forces)
+    forces = [float(f) for f in forces] # fixed?
+    print("FORCES2 : : : ", forces)
     # convert NaN to 0 in forces:
-    forces = [0 if str(f) == 'NaN' else f for f in forces] # not working!!!
+    # forces = [0 if str(f) == 'NaN' else f for f in forces] # not working!!!
     # VISUALIZE FITTEST INDIVIDUAL: -> each run needs a unique json
     data = {
         "step": i,
         "all_connections": all_connections_vis,
         "all_nodes": all_nodes_vis,
         "forces": forces,
-        "forces": population_fitness
+        "population_fitness": population_fitness
     }
 
     # Load existing data
@@ -338,6 +340,7 @@ while i < 50:
         json.dump(existing_data, f)
 
     print(f"Data for step {i} appended to {file_path}")
+    # time.sleep(5)
 
 
 
