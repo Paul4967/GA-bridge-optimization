@@ -11,7 +11,7 @@ import os
 
 
 # READ DATA
-file_path = 'evolution_data.json'
+file_path = 'final_individuals.json'
 with open(file_path, 'r') as f:
         data = json.load(f)
 

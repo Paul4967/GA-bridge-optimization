@@ -10,6 +10,7 @@ import time
 import copy
 import os
 import crossover
+import pareto
 import importlib
 importlib.reload(crossover)
 import fitness as ftns
@@ -23,6 +24,9 @@ file_path = 'evolution_data.json' # for saving bridge_model
 # Initialize existing_data as an empty list
 existing_data = []
 
+file_path_termination = 'final_individuals.json'
+existing_data_termination = []
+
 current_time = time.strftime("%Y%m%d-%H%M%S")  # Format: "20250104-084532"
 log_dir = f"runs/fitness_metrics/{current_time}"
 
@@ -32,122 +36,30 @@ writer = SummaryWriter(log_dir=log_dir)
 
 start_time = time.perf_counter()
 
-## pass params like build domain, ... via functions -> or is feather / parquet more efficient? -> when will it be loaded? every time the function is called?
-
-
-### Initialization
-
-# Parameters to pass:
-
-'''
-base = {
-    "nodes": [
-        [0.0, 0, 0],
-        [2.0, 2, 0],
-        [4.0, 4, 0],
-        [6.0, 6, 0],
-        # ["b1", 0, 0],
-        # ["b2", 2, 0],
-        # ["b3", 4, 0],
-        # ["b4", 6, 0],
-    ],
-    "connections": [
-        [0.0, 2.0],
-        [2.0, 4.0],
-        [4.0, 6.0]
-    ]
-}
-
-bridge = {
-    "nodes": [
-        [1.1, 1, 1],
-        [3.1, 3, 1],
-        [5.1, 5, 1],
-        # [2.1, 2, 1]
-    ],
-    "connections": [
-        [0.0, 1.1],
-        [2.0, 1.1],
-        [2.0, 3.1],
-        #[4.0, 3.1],
-        [4.0, 5.1],
-        [6.0, 5.1],
-        [1.1, 3.1],
-        [3.1, 5.1]
-    ]
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-mutate_node_probability = 1
-mutate_connection_probability = 1
-max_node_offset_multiplier = 1
-grid_size = 1
-build_area = 6, 3
-bridge_nodes = bridge["nodes"]
-base_nodes = base["nodes"]
-bridge_connections = bridge["connections"]
-base_connections = base["connections"]
-max_mutation_amplifier = 1
-min_mutation_amplifier = 1
-all_connections = bridge_connections + base_connections
-all_nodes = bridge_nodes + base_nodes
-
-
-for _ in range(100):
-    bridge_connections_copy = copy.deepcopy(bridge_connections)
-    bridge_nodes_copy = copy.deepcopy(bridge_nodes)
-    all_connections_copy = copy.deepcopy(all_connections)
-    all_nodes_copy = copy.deepcopy(all_nodes)
-
-    bridge_connections_, bridge_nodes_ = mutation.mutate(
-        mutate_node_probability, mutate_connection_probability, max_node_offset_multiplier, grid_size, build_area,
-        bridge_nodes_copy, base_nodes, bridge_connections_copy, base_connections, max_mutation_amplifier, min_mutation_amplifier, all_connections_copy, all_nodes_copy
-    )
-
-
-
-
-all_connections = base_connections + bridge_connections_
-all_nodes = base_nodes + bridge_nodes_
-
-
-
-'''
-
-
 ### START ### ------------------------------------------------------------------------------
-base_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0]]
-base_connections = [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0]]
+base_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [8.0, 8, 0], [10.0, 10, 0]]
+base_connections = [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [6.0, 8.0], [8.0, 10.0]]
 # Forces, ...
 
 
 # MUTATION
-mutate_node_probability = 0.5
-mutate_connection_probability = 0.5
+mutate_node_probability = 0.3
+mutate_connection_probability = 0.3
 max_node_offset_multiplier = 1
 max_mutation_amplifier = 1
 min_mutation_amplifier = 1
 
 # SELECTION
 # 10?
-tournament_size = 12
+tournament_size = 22
 num_selections = 50
 
 
 ### INITIALIZATION ###
-build_area = 6, 3
+
 grid_size = 1
+build_area = 10, 3
+
 population_size = 50
 
 min_node_percentage = 0.2
@@ -167,7 +79,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 75:
+while i < 40:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
@@ -249,19 +161,24 @@ while i < 75:
         fitness, weight, max_force, _ = ftns.calc_fitness(copy.deepcopy(all_connections), copy.deepcopy(all_nodes))
 
         population_post_fitness.append((bridge_nodes, bridge_connections))
-        population_fitness.append(fitness)
         population_weight.append(weight)
         population_max_force.append(max_force)
+        # wrong fitness: population_fitness.append(fitness)
+    
+    ## get population local fitness
+    population_fitness = pareto.pareto_local_fitness(population_post_mutation, population_max_force, population_weight)
 
-        print(fitness, weight, max_force)
+        
 
     # sometimes a connection id is not existing in all_nodes ex.: 6.1 in connections, and 6.2 in nodes -> bc of move_node_mutation?
     # without mutation: sometimes working, but singular matrix error -> has to do something with the population strings
 
     ### DISPLAY FITTEST INDIVIDUAL ### ------------------------------------------------------_
 
-    max_fitness_index = population_fitness.index(max(population_fitness))
-    bridge_nodes_vis, bridge_connections_vis = population_post_fitness[max_fitness_index]
+    max_fitness_index = population_fitness.index(max(population_fitness)) ###OLD
+
+    index_vis = pareto.get_individual_to_vis(population_post_mutation, population_max_force, population_weight)
+    bridge_nodes_vis, bridge_connections_vis = population_post_fitness[index_vis]
 
 
 
@@ -283,16 +200,16 @@ while i < 75:
 
 
     
-
+    #### REPLACED max_fitness_index with index_vis #### ----
 
     print("FITNESS: ", population_fitness[max_fitness_index])
-    print("WEIGHT: ", population_weight[max_fitness_index])
-    print("MAX FORCE: ", population_max_force[max_fitness_index])
+    print("WEIGHT: ", population_weight[index_vis])
+    print("MAX FORCE: ", population_max_force[index_vis])
 
     i += 1
     fitness = population_fitness[max_fitness_index]
-    weight = population_weight[max_fitness_index]
-    max_force = population_max_force[max_fitness_index]
+    weight = population_weight[index_vis]
+    max_force = population_max_force[index_vis]
 
     population_fitness_variance = np.var(population_fitness)
 
@@ -356,10 +273,55 @@ print(f"Execution time: {elapsed_time:.6f} seconds")
 
 
 
+### SAVE FINAL PARETO FRONT ###
+# get front -> all individuals with fitness higher or equal to 0.1
+step = 0
+for i, individual in enumerate(population_post_fitness):
+    
+    if population_fitness[i] >= 0.1:
+        bridge_nodes_front, bridge_connections_front = individual
+        all_connections_front = base_connections + bridge_connections_front
+        all_nodes_front = base_nodes + bridge_nodes_front
+        step += 1
+
+        _, _, _, forces = ftns.calc_fitness(all_connections_front, all_nodes_front)
+        forces = [float(f) for f in forces] # fixed?
+        # add to json
+        data = {
+            "step": step,
+            "all_connections": all_connections_front,
+            "all_nodes": all_nodes_front,
+            "forces": forces,
+            "population_fitness": 1
+        }
+
+        # Load existing data
+        if os.stat(file_path_termination).st_size == 0:
+            print("The file is empty!")
+        else:
+            with open(file_path_termination, 'r') as f:
+                existing_data_termination = json.load(f)
+
+        # Append new data
+        existing_data_termination.append(data)
+
+        # Save the updated data back to the file
+        with open(file_path_termination, 'w') as f:
+            # json.dump(existing_data, f, indent=4)
+            json.dump(existing_data_termination, f)
+
+    
+
+
+
+
 # Launch Tensorboard:
 # python -m tensorboard.main --logdir=runs/fitness_metrics
 # or:
 # python -m tensorboard.main --logdir=runs/fitness_metrics --reload_interval=2
+
+
+
 
 
 

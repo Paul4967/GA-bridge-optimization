@@ -55,6 +55,13 @@ bridge = {
 
 
 def calc_fitness(all_connections, all_nodes):
+
+
+    ### CHECK IF STABLE ###
+    if ((len(all_nodes) * 2) - len(all_connections)) > 3:
+        return 0, 0, 0, 0
+
+
     ### ANALYZE TRUSS ### ---------------------------------------------------------------------------------------
 
     ### convert node format ### -----------------------------------------
@@ -147,8 +154,8 @@ def calc_fitness(all_connections, all_nodes):
             self.y_support = y_support
 
     materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
-    loads = [Load(2, 0, -1000), Load(3, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
-    supports = [Support(1, True, True), Support(4, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
+    loads = [Load(3, 0, -1000), Load(4, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
+    supports = [Support(1, True, True), Support(6, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
 
 
 
@@ -227,7 +234,17 @@ def calc_fitness(all_connections, all_nodes):
     # fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))) * 100
     fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))) * 100
 
-    return fitness, weight, max_absolute_force, forces.values()
+    return fitness, weight, max_absolute_force, forces.values() #all forces of an individual -> for visualization purposes
+
+
+
+
+"""STORE ARRAY WITH: INDEX, MAX_FORCE, WEIGHT for each individual"""
+"""HANDLE IF TRUSS IS INDETERMINATE AND UNSTABLE -> IF WEIGHT AND FORCES ARE 0, FITNESS == 0"""
+
+
+
+
 
 
 

@@ -1,6 +1,20 @@
 # all_nodes: nodes from base and bridge
 # all_connections: connections from base and bridge
 
+def generate_id(x, y):
+    second_value_str = str(y)
+    # Move trailing zeros to the front
+    if second_value_str.endswith('0'):
+        # Count the number of trailing zeros
+        trailing_zeros = len(second_value_str) - len(second_value_str.rstrip('0'))
+        # Move trailing zeros to the front
+        second_value_str = '0' * trailing_zeros + second_value_str.rstrip('0')
+
+    # Format the ID as requested, converting it to a numeric value
+    formatted_id = float(f"{x}.{second_value_str}")
+    return formatted_id
+
+
 
 
 def get_coords(id, all_nodes):
