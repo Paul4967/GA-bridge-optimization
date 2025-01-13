@@ -128,10 +128,7 @@ def crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge
             for i, connection in enumerate(child_connections):
                 [id1_, id2_] = connection
                 if id1_ == id1 and id2_ == id2:
-                    child_connections[i] = [
-                    x + y / (10 ** len(str(int(y)))),  
-                    ex + ey / (10 ** len(str(int(ey)))) 
-                    ]
+                    child_connections[i] = [ga_modules.generate_id(x, y), ga_modules.generate_id(ex, ey)]
                     print("fixed connection: ", child_connections[i])
 
                     break
@@ -204,6 +201,17 @@ def crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge
     child_connections = unique_connections
 
     return child_nodes, child_connections
+
+
+
+
+
+
+
+
+
+
+
 
 
 

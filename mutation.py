@@ -92,7 +92,7 @@ def mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_co
     ###------------------
     
     
-    max_shift_distance = max_node_offset_multiplier
+    max_shift_distance = max_node_offset_multiplier / grid_size # float error?
 
     old_id, x, y = random.choice(bridge_nodes)
     # left_nodes = [node for node in all_nodes if node not in old]
@@ -129,7 +129,7 @@ def mutate_node(bridge_nodes, bridge_connections, base_nodes, all_nodes, base_co
             print("not working for:", new_x, new_y)
             continue
 
-        new_id = new_x + new_y / (10 ** len(str(int(new_y))))  
+        new_id = ga_modules.generate_id(new_x, new_y)
         # Replace the node with old_id by new_id
         new_bridge_nodes = copy.deepcopy(bridge_nodes)
         for i, node in enumerate(new_bridge_nodes):
@@ -209,9 +209,9 @@ def create_node(build_area, all_nodes, all_connections, base_connections, bridge
 
         if initialization.node_is_existing(node_x, node_y, bridge_nodes) or initialization.node_intersecting_connection(node_x, node_y, all_connections, all_nodes): 
             continue
-
+        
         node = [
-            node_x + node_y / (10 ** len(str(int(node_y)))), # id, x, y
+            ga_modules.generate_id(node_x, node_y),
             node_x, 
             node_y
         ]

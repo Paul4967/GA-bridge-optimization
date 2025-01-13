@@ -14,14 +14,26 @@ def generate_id(x, y):
     formatted_id = float(f"{x}.{second_value_str}")
     return formatted_id
 
+def get_coords(id_value, all_nodes):
+    # Split the ID into the integer and fractional parts
+    x = int(str(id_value).split('.')[0])  # Extract the integer part (x)
+    fractional_part = str(id_value).split('.')[1]  # Extract the fractional part as a string
+
+    # Handle leading zeros in the fractional part
+    trailing_zeros = len(fractional_part) - len(fractional_part.lstrip('0'))
+    # Reconstruct y by appending the trailing zeros to the fractional part
+    y = int(fractional_part.lstrip('0') + '0' * trailing_zeros)
+
+    return x, y # check if in all_nodes? -> valueError if not?
 
 
-
+'''
 def get_coords(id, all_nodes):
     for node in all_nodes:
         if node[0] == id:
             return node[1], node[2]
     raise ValueError(f"ID {id} not found in available nodes.")
+'''
 
 
 def calcRotation(point1, point2, point3, all_nodes):
@@ -94,6 +106,7 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
             [p2, q2] = [id1_, id2_] 
             if calcRotation(p1, q1, p2, all_nodes) + calcRotation(p1, q1, q2, all_nodes) == 0 and calcRotation(p2, q2, p1, all_nodes) + calcRotation(p2, q2, q1, all_nodes) == 0:
                 print (id1, id2, "is crossing with ", id1_, id2_)
+                print(get_coords(id1, 1), get_coords(id2, 1), get_coords(id1_, 1), get_coords(id2_, 1)) # correct
                 return False
             
             
@@ -111,14 +124,8 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
             print(f'connection {x1, y1}, {x2, y2} is crossing with point: {node}')
 
             if allow_splitting:
-                split_c1 = [
-                x1 + y1 / (10 ** len(str(int(y1)))),  
-                x3 + y3 / (10 ** len(str(int(y3)))) 
-                ]
-                split_c2 = [
-                x2 + y2 / (10 ** len(str(int(y2)))),  
-                x3 + y3 / (10 ** len(str(int(y3)))) 
-                ]
+                split_c1 = [generate_id(x1, y1), generate_id(x3, y3)]
+                split_c2 = [generate_id(x2, y2), generate_id(x3, y3)]
                 print(split_c1, split_c2)
                 return split_c1, split_c2
                                     

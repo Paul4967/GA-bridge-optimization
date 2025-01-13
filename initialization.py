@@ -73,14 +73,14 @@ def initialize(base_nodes, base_connections, min_node_percentage, max_node_perce
     i = 0
     while i < node_num:
         # generate random nodes
-        node_x = random.randint(0, build_domain_x)
-        node_y = random.randint(0, build_domain_y)
+        node_x = random.randint(0, round(build_domain_x))
+        node_y = random.randint(0, round(build_domain_y))
 
         if node_is_existing(node_x, node_y, bridge_nodes) or node_intersecting_connection(node_x, node_y, base_connections, base_nodes): 
             continue # pick other random coords             #### or move node on x and then on y axis to next free spot
 
         node = [
-            node_x + node_y / (10 ** len(str(int(node_y)))), # id, x, y
+            ga_modules.generate_id(node_x, node_y),
             node_x, 
             node_y
         ]

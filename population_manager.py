@@ -37,8 +37,10 @@ writer = SummaryWriter(log_dir=log_dir)
 start_time = time.perf_counter()
 
 ### START ### ------------------------------------------------------------------------------
-base_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [8.0, 8, 0], [10.0, 10, 0]]
-base_connections = [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [6.0, 8.0], [8.0, 10.0]]
+base_nodes = [[0.0, 0, 0], [20.0, 2, 0], [40.0, 4, 0], [60.0, 6, 0], [80.0, 8, 0], [100.0, 10, 0]]
+base_connections = [[0.0, 20.0], [20.0, 40.0], [40.0, 60.0], [60.0, 80.0], [80.0, 100.0]]
+## divide by grid_size as well!^^
+
 # Forces, ...
 
 
@@ -57,13 +59,13 @@ num_selections = 50
 
 ### INITIALIZATION ###
 
-grid_size = 1
-build_area = 10, 3
+grid_size = 0.1
+build_area = 10 / grid_size, 3 / grid_size # float error?
 
 population_size = 50
 
-min_node_percentage = 0.2
-max_node_percentage = 0.6
+min_node_percentage = 0.02 # o.2
+max_node_percentage = 0.06 # 0.6
 
 
 # tf.summary.text('Population Size', f'Population Size: {population_size}', step=0)
