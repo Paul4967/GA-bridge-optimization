@@ -74,11 +74,12 @@ def plot_bridge_with_forces(nodes, connections, forces):
                     bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, pad=1))
     
     # Label the nodes
-    for idx, node in enumerate(nodes):
-        ax.text(node[1] + 0.1, node[2] + 0.1, str(int(node[0])), fontsize=12, zorder=10)
+    # for idx, node in enumerate(nodes):
+        # ax.text(node[1] + 0.1, node[2] + 0.1, f"({node[1]:.1f}, {node[2]:.1f})", 
+            # fontsize=7, zorder=10)
     
-    ax.set_xlim(-1, 101)
-    ax.set_ylim(-1, 31)
+    ax.set_xlim(-1, 21)
+    ax.set_ylim(-1, 7)
 
     # Ensure equal scaling of both axes
     ax.set_aspect('equal', adjustable='box')
@@ -112,8 +113,9 @@ def update_plot(step):
         print(f"No data for step {step}")
         return
 
-    forces = step_data["forces"]
-    nodes = step_data["all_nodes"]
+    # Scale the forces and node positions
+    forces = [force for force in step_data["forces"]]  # Scale forces by 10
+    nodes = [[node[0], node[1] / 10, node[2] / 10] for node in step_data["all_nodes"]]  # Scale coordinates
     connections = step_data["all_connections"]
     
     fig, ax = plot_bridge_with_forces(nodes, connections, forces)

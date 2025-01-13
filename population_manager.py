@@ -16,6 +16,7 @@ importlib.reload(crossover)
 import fitness as ftns
 import selection
 import numpy as np
+import torch
 import tensorflow as tf
 from torch.utils.tensorboard import SummaryWriter
 
@@ -37,8 +38,11 @@ writer = SummaryWriter(log_dir=log_dir)
 start_time = time.perf_counter()
 
 ### START ### ------------------------------------------------------------------------------
-base_nodes = [[0.0, 0, 0], [20.0, 20, 0], [40.0, 40, 0], [60.0, 60, 0], [80.0, 80, 0], [100.0, 100, 0]]
-base_connections = [[0.0, 20.0], [20.0, 40.0], [40.0, 60.0], [60.0, 80.0], [80.0, 100.0]]
+# base_nodes = [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0], [200.0, 200, 0]]
+# base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
+
+base_nodes = [[0.0, 0, 0], [4.0, 4, 0], [8.0, 8, 0], [12.0, 12, 0], [160.0, 160, 0], [200.0, 200, 0]]
+base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
 ## divide by grid_size as well!^^
 
 # Forces, ...
@@ -53,19 +57,19 @@ min_mutation_amplifier = 1
 
 # SELECTION
 # 10?
-tournament_size = 22
+tournament_size = 30
 num_selections = 50
 
 
 ### INITIALIZATION ###
 
-grid_size = 0.1
-build_area = 10 / grid_size, 3 / grid_size # float error?
+grid_size = 1
+build_area = 20 / grid_size, 7 / grid_size # float error?
 
-population_size = 50
+population_size = 100
 
-min_node_percentage = 0.002 # o.2 # FIX!!!
-max_node_percentage = 0.006 # 0.6 # * grid_size, times 10
+min_node_percentage = 0.07 # o.2 # FIX!!!
+max_node_percentage = 0.12 # 0.6 # * grid_size, times 10 / grind_size^2?
 
 
 # tf.summary.text('Population Size', f'Population Size: {population_size}', step=0)
@@ -81,7 +85,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 40:
+while i < 100:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
@@ -215,12 +219,23 @@ while i < 40:
 
     population_fitness_variance = np.var(population_fitness)
 
+
+
+
+    ## TENSORBOARD ADD HISTOGRAMS
+    population_weight_ = [value for value in population_weight if value != 0]
+    population_max_force_ = [value for value in population_max_force if value != 0]
+    population_weight_tensor = torch.tensor(population_weight_)
+    population_max_force_tensor = torch.tensor(population_max_force_)
+
     # Log these values (you can use the iteration number as a step)
     step = i  # Replace with your actual iteration or epoch number
-    writer.add_scalar("Metrics/Fitness", fitness, step)
+    # writer.add_scalar("Metrics/Fitness", fitness, step)
     writer.add_scalar("Metrics/Fittest Individual Weight", weight, step)
     writer.add_scalar("Metrics/Fittest Individual Max Force", max_force, step)
-    writer.add_scalar("Metrics/Population Fitness Variance", population_fitness_variance, step)
+    # writer.add_scalar("Metrics/Population Fitness Variance", population_fitness_variance, step)
+    writer.add_histogram("population_weight", population_weight_tensor, step)
+    writer.add_histogram("population_max_force", population_weight_tensor, step)
     writer.flush()
 
     # time.sleep(.1)
