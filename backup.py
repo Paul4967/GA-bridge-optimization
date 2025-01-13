@@ -1,247 +1,187 @@
+# https://youtu.be/qUeud6DvOWI?si=MDvBcHsIlpwnEP_T&t=420
+# https://www.w3schools.com/python/python_modules.asp
+# can contain arrays, objects, variables, functions, ...
 
-
-# weight = euclidean distance of each connection
-# max_load = maximal force exerted on a connection -> is lenght important?
-# is_connected = check if node is connected to (at least to or 3?) nodes. -> rewards in percentage of all beams (5 of 10 connected = 50%)
-
-# IMPORT NODES AND CONNECTIONS -> NO! --> IMPORT FITNESS FUNCTION INTO CONTROLLER, AND PASS CONNECTIONS TO IT!
-
-import ga_modules
 import math
-import truss_calculator
+import initialization
+import mutation
+import json
+import time
 import copy
+import os
+import crossover
+import pareto
+import importlib
+import fitness as ftns
+import selection
+import numpy as np
+# from torch.utils.tensorboard import SummaryWriter
 
 
-base = {
-    "nodes": [
-        [0.0, 0, 0],
-        [2.0, 2, 0],
-        [4.0, 4, 0],
-        [6.0, 6, 0],
-        # ["b1", 0, 0],
-        # ["b2", 2, 0],
-        # ["b3", 4, 0],
-        # ["b4", 6, 0],
-    ],
-    "connections": [
-        [0.0, 2.0],
-        [2.0, 4.0],
-        [4.0, 6.0]
-    ]
-}
+start_time = time.perf_counter()
 
-bridge = {
-    "nodes": [
-        [1.1, 1, 1],
-        [3.1, 3, 1],
-        [5.1, 5, 1],
-        # [2.1, 2, 1]
-    ],
-    "connections": [
-        [0.0, 1.1],
-        [2.0, 1.1],
-        [2.0, 3.1],
-        [4.0, 3.1],
-        [4.0, 5.1],
-        [6.0, 5.1],
-        [1.1, 3.1],
-        [3.1, 5.1]
-    ]
-}
+### START ### ------------------------------------------------------------------------------
+base_nodes = [[0.0, 0, 0], [20.0, 20, 0], [40.0, 40, 0], [60.0, 60, 0], [80.0, 80, 0], [100.0, 100, 0]]
+base_connections = [[0.0, 20.0], [20.0, 40.0], [40.0, 60.0], [60.0, 80.0], [80.0, 100.0]]
 
-# all_connections = bridge["connections"] + base["connections"]
-# all_nodes = bridge["nodes"] + base["nodes"]
+# base_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [8.0, 8, 0], [10.0, 10, 0]]
+# base_connections = [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [6.0, 8.0], [8.0, 10.0]]
+## divide by grid_size as well!^^
+
+# Forces, ...
 
 
+# MUTATION
+mutate_node_probability = 0.3
+mutate_connection_probability = 0.3
+max_node_offset_multiplier = 1
+max_mutation_amplifier = 1
+min_mutation_amplifier = 1
 
-def calc_fitness(all_connections, all_nodes):
-    ### ANALYZE TRUSS ### ---------------------------------------------------------------------------------------
-
-    ### convert node format ### -----------------------------------------
-
-    all_nodes_ = copy.deepcopy(all_nodes)
-    for index, node in enumerate(all_nodes_):
-        node.insert(0, index + 1)
-    print("NODES: ", all_nodes_)
-
-    class Node:
-        def __init__(self, id, x, y):
-            self.id = id
-            self.x = x
-            self.y = y
-
-        def __repr__(self):
-            return f"Node({self.id}, {self.x}, {self.y})"
-        
-    # Transformation function
-    def transform_nodes(data):
-        new_nodes = []
-        for index, (i, id, x, y) in enumerate(data, start=1):
-            new_nodes.append(Node(index, x, y))
-        return new_nodes
-
-    # Convert to the new format
-    converted_nodes = transform_nodes(all_nodes_)
-
-    # Print the results
-    for node in converted_nodes:
-        print(node)
+# SELECTION
+# 10?
+tournament_size = 3
+num_selections = 6
 
 
-    ### convert connection format ### -----------------------------------------
+### INITIALIZATION ###
 
+grid_size = 0.1
+build_area = 10 / grid_size, 3 / grid_size # float error?
+
+population_size = 10
+
+min_node_percentage = 0.02 # o.2
+max_node_percentage = 0.06# 0.6
+
+
+# tf.summary.text('Population Size', f'Population Size: {population_size}', step=0)
+# tf.summary.text('Tournament Size', f'Tournament Size: {tournament_size}', step=0)
+
+population = [] # all bridges (bridge_nodes + )
+
+for _ in range(population_size):
+    bridge_nodes, bridge_connections = initialization.initialize(base_nodes, base_connections, min_node_percentage, max_node_percentage, build_area)
+    population.append((bridge_nodes, bridge_connections))
     
-    id_to_index = {node[1]: node[0] for node in all_nodes_}
-    print("ID to Index Mapping:", id_to_index)
-    all_connections_ = [
-        [id_to_index[node_id] for node_id in connection] for connection in all_connections
-    ]
-    print("ALL C:", all_connections_)
-
-
-    # Define the Member class
-    class Member:
-        def __init__(self, id, node1, node2, material_id):
-            self.id = id
-            self.node1 = node1
-            self.node2 = node2
-            self.material_id = material_id
-
-        def __repr__(self):
-            return f"Member({self.id}, {self.node1}, {self.node2}, {self.material_id})"
-
-    # Transform connections into members
-    def create_members(connections):
-        members = []
-        for index, (node1, node2) in enumerate(connections, start=1):
-            members.append(Member(index, node1, node2, 1))
-        return members
-
-    # Convert to the desired format
-    converted_members = create_members(all_connections_)
-
-    # Print the results
-    for member in converted_members:
-        print(member)
+print("POPULATION: ", population)
+time.sleep(5)
 
 
 
-    ### other inputs ###
+'''
+i  = 0
+while i < 2:
+    i +=1
+    
+    ### CROSSOVER ### 
+    'PERFORM 2 Times for each pair!!!'
+    # split population into pairs
+    pairs = [(population[i], population[i + 1]) for i in range(0, len(population), 2)]
 
-    class Material:
-        def __init__(self, id, E, A):
-            self.id = id
-            self.E = E  # Young's modulus
-            self.A = A  # Cross-sectional area
+    population_post_crossover = []
+    # Iterate through the pairs to retrieve the required elements
+    for pair in pairs:
+        # Unpack the pair into two bridges
+        (bridge1_nodes, bridge1_connections), (bridge2_nodes, bridge2_connections) = pair
+        print("PAIR: ", pair)
+        print(f'BN1: {bridge1_nodes},\n BN2: {bridge2_nodes},\n BC1: {bridge1_connections},\n BC2: {bridge2_connections}')
 
-    class Load:
-        def __init__(self, node_id, fx, fy):
-            self.node_id = node_id
-            self.fx = fx
-            self.fy = fy
-
-    class Support:
-        def __init__(self, node_id, x_support, y_support):
-            self.node_id = node_id
-            self.x_support = x_support
-            self.y_support = y_support
-
-    materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
-    loads = [Load(5, 0, -1000), Load(6, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
-    supports = [Support(4, True, True), Support(7, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
+        # aktuell: 2 childs pro Brücke
+        for _ in range(4):
+            bridge_nodes, bridge_connections = crossover.crossover(base_nodes, base_connections, bridge1_nodes, bridge2_nodes, bridge1_connections, bridge2_connections)
+            population_post_crossover.append((bridge_nodes, bridge_connections))
+            print(f'CN: {bridge_nodes} \n CC: {bridge_connections}')
 
 
+    ''''''
+    ### MUTATION ### ---------------------------------------------------------------- #everything working above
+    
+    population_post_mutation = []
 
-    ### ANALYZE ###
-    print(converted_members)
-    displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
+    for individual in population_post_crossover:
+        print("X15", individual, "\n ", individual[0])
+        
+        # Unpack the individual to reset variables from the population
+        bridge_nodes, bridge_connections = copy.deepcopy(individual)
 
-    print("Nodal Displacements:")
-    for node, displacement in displacements.items():
-        print(f"{node}: {displacement:.6e}")
+        # Ensure the base and bridge variables are isolated and reset
+        bridge_connections_copy = copy.deepcopy(bridge_connections)
+        bridge_nodes_copy = copy.deepcopy(bridge_nodes)
 
-    print("\nInternal Forces, Stress, and Strain:")
-    for member_id, values in stress_strain.items():
-        print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")
+        # Recompute all_connections and all_nodes for this specific individual
+        all_connections = copy.deepcopy(base_connections + bridge_connections)
+        all_nodes = copy.deepcopy(base_nodes + bridge_nodes)
+
+        # Perform mutation with fresh variables
+        bridge_connections_, bridge_nodes_ = mutation.mutate(
+            mutate_node_probability,
+            mutate_connection_probability,
+            max_node_offset_multiplier,
+            grid_size,
+            build_area,
+            bridge_nodes_copy,
+            copy.deepcopy(base_nodes),  # Ensure base_nodes are isolated
+            bridge_connections_copy,
+            copy.deepcopy(base_connections),  # Ensure base_connections are isolated
+            max_mutation_amplifier,
+            min_mutation_amplifier,
+            all_connections,
+            all_nodes
+        )
+
+        # Append mutated individual to the new population
+        population_post_mutation.append((bridge_nodes_, bridge_connections_))
 
 
 
 
+    ### FITNESS CALCULATION ### ----------------------------------------------------------- #everything above working
 
+    population_post_fitness = []
+    population_fitness = []
+    population_weight = []
+    population_max_force = []
+    print("CALCULATING FITNESS ------------------")
 
-    ### FORCE VARIANCE ### ---------------------------------------------------
+    for individual in population_post_mutation: # change to mutation
+        bridge_nodes, bridge_connections = individual
+        all_nodes = base_nodes + bridge_nodes
+        all_connections = base_connections + bridge_connections
 
-    # 1 Average Force
-    avg_force = sum(abs(force) for force in forces.values()) / len(forces)
-    print(f"avg Force: {avg_force:.6e} N")
+        print("all_nodes: ", all_nodes)
+        print("all_connections: ", all_connections)
 
-    force_variance = sum((abs(force) - avg_force) ** 2 for force in forces.values()) / len(forces)
-    print(f"Force Variance: {force_variance:.6e} N^2")
-    # 2 Variance
+        fitness, weight, max_force, _ = ftns.calc_fitness(copy.deepcopy(all_connections), copy.deepcopy(all_nodes))
 
+        population_post_fitness.append((bridge_nodes, bridge_connections))
+        population_weight.append(weight)
+        population_max_force.append(max_force)
+        # wrong fitness: population_fitness.append(fitness)
+    
+    ## get population local fitness
+    population_fitness = pareto.pareto_local_fitness(population_post_mutation, population_max_force, population_weight)
 
-    ### MAX FORCE ### --------------------------------------------------------
-    max_absolute_force = max(abs(force) for force in forces.values())
-    print(f"max abs Force: {max_absolute_force:.6e} N")
-
-
-    ### WEIGHT ### -----------------------------------------------------------
-    print(all_nodes)
-    weight = 0 # weight == total distance
-    for connection in all_connections:
-        id1, id2 = connection
-
-        x1, y1 = ga_modules.get_coords(id1, all_nodes)
-        x2, y2 = ga_modules.get_coords(id2, all_nodes)
-
-        # calculate distance
-        distance = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2))
-        weight += distance
-
-    print(f'Weight: {weight}')
         
 
-    ### NOT CONNECTED PENALTY ### --------------------------------------------            ### UNFINISHED
-    num_of_unconnected_nodes = 0
-    for node in all_nodes: 
-        if sum(node[0] in connection for connection in all_connections) < 2:
-            num_of_unconnected_nodes += 1
+    # sometimes a connection id is not existing in all_nodes ex.: 6.1 in connections, and 6.2 in nodes -> bc of move_node_mutation?
+    # without mutation: sometimes working, but singular matrix error -> has to do something with the population strings
+
+    ### DISPLAY FITTEST INDIVIDUAL ### ------------------------------------------------------_
+
+    max_fitness_index = population_fitness.index(max(population_fitness)) ###OLD
+
+    index_vis = pareto.get_individual_to_vis(population_post_mutation, population_max_force, population_weight)
+    bridge_nodes_vis, bridge_connections_vis = population_post_fitness[index_vis]
 
 
 
 
+    ### SELECTION ### ------------------------------------------------------------------------
 
-    ### OVERALL FITNESS EQUATION ### -----------------------------------------
-    # weights
-    w1 = 1
-    w2 = 1
-    w3 = 1
-
-    fitness = w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))
-
-    return fitness, weight, max_absolute_force
+    selected_population = selection.tournament_selection(population_post_fitness, population_fitness, tournament_size, num_selections)
 
 
-# print("RETUNR: ", calc_fitness(bridge["connections"] + base["connections"], bridge["nodes"] + base["nodes"]))
-print("RETUNR 2: ", calc_fitness([[2.2, 2.0], [0.1, 0.0], [3.2, 6.0], [0.1, 2.2], [3.2, 2.2], [0.0, 2.2], [4.0, 3.2], [3.1, 3.2], [3.1, 2.0], [0.0, 2.0], [2.0, 4.0], [4.0, 6.0]], [[3.2, 3, 2], [2.2, 2, 2], [0.1, 0, 1], [3.1, 3, 1], [0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0]]))
-# all_connections = bridge["connections"] + base["connections"]
-# all_nodes = bridge["nodes"] + base["nodes"]
-
-###########################
-###########################
-###########################
-###########################
-###########################
-###########################
-###########################
-
-
-def is_determinate(all_nodes, all_connections):
-    # maybe schon durch truss analysis aussortiert
-    ...
-
-
-### not connected node penalty
-### divide all penalties by amount of nodes or beams, to avoid bridges with less nodes / beams to score higher
-
-# first calculate if stable, or unstalbe with m+r - 2j > 0 -> or just use truss force calc? -> test cases!
+    ## CYCLE ##
+    population = selected_population
+    '''

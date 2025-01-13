@@ -73,7 +73,7 @@ def initialize(base_nodes, base_connections, min_node_percentage, max_node_perce
     i = 0
     while i < node_num:
         # generate random nodes
-        node_x = random.randint(0, round(build_domain_x))
+        node_x = random.randint(0, round(build_domain_x)) # ERROR HERE?
         node_y = random.randint(0, round(build_domain_y))
 
         if node_is_existing(node_x, node_y, bridge_nodes) or node_intersecting_connection(node_x, node_y, base_connections, base_nodes): 
@@ -139,6 +139,15 @@ def initialize(base_nodes, base_connections, min_node_percentage, max_node_perce
 
 
 
+
+
+### DEBUG ### --------------------------------------------------------
+base_nodes = [[0.0, 0, 0], [20.0, 2, 0], [40.0, 4, 0], [60.0, 6, 0], [80.0, 8, 0], [100.0, 10, 0]]
+base_connections = [[0.0, 20.0], [20.0, 40.0], [40.0, 60.0], [60.0, 80.0], [80.0, 100.0]]
+# build_domain = 100, 30
+build_domain = 10 / 0.1, 3 / 0.1
+print(initialize(base_nodes, base_connections, 0.01, 0.01, build_domain))
+print("RESULT")
 
 
 

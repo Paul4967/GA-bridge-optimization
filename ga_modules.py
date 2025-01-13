@@ -107,6 +107,8 @@ def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting
             if calcRotation(p1, q1, p2, all_nodes) + calcRotation(p1, q1, q2, all_nodes) == 0 and calcRotation(p2, q2, p1, all_nodes) + calcRotation(p2, q2, q1, all_nodes) == 0:
                 print (id1, id2, "is crossing with ", id1_, id2_)
                 print(get_coords(id1, 1), get_coords(id2, 1), get_coords(id1_, 1), get_coords(id2_, 1)) # correct
+                # print("ROTATION: ", calcRotation(p1, q1, p2, all_nodes)) # not false !
+                # print(all_nodes) # correct
                 return False
             
             

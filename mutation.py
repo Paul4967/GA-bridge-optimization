@@ -195,7 +195,7 @@ def create_node(build_area, all_nodes, all_connections, base_connections, bridge
     existing_coords = {(node[1], node[2]) for node in all_nodes}
     possible_coords = [
         (x, y)
-        for x, y in itertools.product(range(build_area[0] + 1), range(build_area[1] + 1))
+        for x, y in itertools.product(range(int(build_area[0]) + 1), range(int(build_area[1]) + 1))
     ]
 
     available_coords = [coord for coord in possible_coords if coord not in existing_coords]

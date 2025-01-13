@@ -77,8 +77,8 @@ def plot_bridge_with_forces(nodes, connections, forces):
     for idx, node in enumerate(nodes):
         ax.text(node[1] + 0.1, node[2] + 0.1, str(int(node[0])), fontsize=12, zorder=10)
     
-    ax.set_xlim(-1, 11)
-    ax.set_ylim(-1, 4)
+    ax.set_xlim(-1, 101)
+    ax.set_ylim(-1, 31)
 
     # Ensure equal scaling of both axes
     ax.set_aspect('equal', adjustable='box')
