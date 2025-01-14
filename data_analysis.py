@@ -24,7 +24,7 @@ colors = [
 custom_cmap = LinearSegmentedColormap.from_list("CustomMap", colors)
 
 # Plotting function
-def plot_bridge_with_forces(nodes, connections, forces):
+def plot_bridge_with_forces(nodes, connections, forces, weight, max_force_display):
     plt.close('all')  # Close all existing figures
     fig, ax = plt.subplots(figsize=(8, 6))  # Create figure and axis explicitly
 
@@ -88,7 +88,7 @@ def plot_bridge_with_forces(nodes, connections, forces):
     ax.grid(True)
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
-    ax.set_title("Bridge Visualization with Forces")
+    ax.set_title(f'weight: {weight}    max_force: {max_force_display}')
 
     # Create custom legend entries for force and compression
     neutral_patch = mpatches.Patch(color=custom_cmap(norm(0)), label='None (Neutral Force)', linewidth=2)
@@ -117,8 +117,10 @@ def update_plot(step):
     forces = [force for force in step_data["forces"]]  # Scale forces by 10
     nodes = [[node[0], node[1] / 10, node[2] / 10] for node in step_data["all_nodes"]]  # Scale coordinates
     connections = step_data["all_connections"]
+    weight = step_data["weight"]
+    max_force = step_data["max_force"]
     
-    fig, ax = plot_bridge_with_forces(nodes, connections, forces)
+    fig, ax = plot_bridge_with_forces(nodes, connections, forces, weight, max_force)
     
     if canvas:
         for widget in root.winfo_children():

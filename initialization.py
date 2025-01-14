@@ -118,19 +118,20 @@ def initialize(base_nodes, base_connections, min_node_percentage, max_node_perce
                     bridge_connections.append(new_connection)
                     all_connections.append(new_connection)
                     break
-
-    for node in base_nodes:
-            id1 = node[0]
-            random.shuffle(all_nodes)
-            for next_node in all_nodes:
-                id2 = next_node[0]
-                if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) is False or id1 is id2:
-                    continue
-                else:
-                    new_connection = [id1, id2]
-                    bridge_connections.append(new_connection)
-                    all_connections.append(new_connection)
-                    break
+    
+    for _ in range(2):
+        for node in base_nodes:
+                id1 = node[0]
+                random.shuffle(all_nodes)
+                for next_node in all_nodes:
+                    id2 = next_node[0]
+                    if ga_modules.connection_is_possible(id1, id2, all_connections, all_nodes, False) is False or id1 is id2:
+                        continue
+                    else:
+                        new_connection = [id1, id2]
+                        bridge_connections.append(new_connection)
+                        all_connections.append(new_connection)
+                        break
 
     print("ALL CONNECTIONS: ", all_connections)
     print("CONNECTIONS: ", bridge_connections)

@@ -1,5 +1,6 @@
 # all_nodes: nodes from base and bridge
 # all_connections: connections from base and bridge
+import math
 
 def generate_id(x, y):
     second_value_str = str(y)
@@ -147,3 +148,18 @@ def filter_connections(id1, id2, all_connections):
         filtered_connections.append(connection)
 
     return filtered_connections
+
+
+
+def calc_weight(all_connections, all_nodes):
+    weight = 0 # weight == total distance
+    for connection in all_connections:
+        id1, id2 = connection
+
+        x1, y1 = get_coords(id1, all_nodes)
+        x2, y2 = get_coords(id2, all_nodes)
+
+        # calculate distance
+        distance = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2))
+        weight += distance
+    return weight

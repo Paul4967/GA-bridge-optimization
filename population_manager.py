@@ -10,6 +10,7 @@ import time
 import copy
 import os
 import crossover
+import ga_modules
 import pareto
 import importlib
 importlib.reload(crossover)
@@ -38,13 +39,14 @@ writer = SummaryWriter(log_dir=log_dir)
 start_time = time.perf_counter()
 
 ### START ### ------------------------------------------------------------------------------
-# base_nodes = [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0], [200.0, 200, 0]]
-# base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
-
-base_nodes = [[0.0, 0, 0], [4.0, 4, 0], [8.0, 8, 0], [12.0, 12, 0], [160.0, 160, 0], [200.0, 200, 0]]
+base_nodes = [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0], [200.0, 200, 0], [100.03, 100, 30]] #[100.05, 100, 50]
 base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
+
+# base_nodes = [[0.0, 0, 0], [4.0, 4, 0], [8.0, 8, 0], [12.0, 12, 0], [160.0, 160, 0], [200.0, 200, 0]]
+# base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
 ## divide by grid_size as well!^^
 
+### Extra Node bei y = 4 oder 5
 # Forces, ...
 
 
@@ -63,13 +65,13 @@ num_selections = 50
 
 ### INITIALIZATION ###
 
-grid_size = 1
+grid_size = 0.1
 build_area = 20 / grid_size, 7 / grid_size # float error?
 
 population_size = 100
 
-min_node_percentage = 0.07 # o.2 # FIX!!!
-max_node_percentage = 0.12 # 0.6 # * grid_size, times 10 / grind_size^2?
+min_node_percentage = 0.00025 # o.2 # FIX!!!
+max_node_percentage = 0.001 # 0.6 # * grid_size, times 10 / grind_size^2?
 
 
 # tf.summary.text('Population Size', f'Population Size: {population_size}', step=0)
@@ -85,7 +87,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 100:
+while i < 40:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
@@ -224,7 +226,7 @@ while i < 100:
 
     ## TENSORBOARD ADD HISTOGRAMS
     population_weight_ = [value for value in population_weight if value != 0]
-    population_max_force_ = [value for value in population_max_force if value != 0]
+    population_max_force_ = [value for value in population_max_force if value != 0 and value <= 10000]
     population_weight_tensor = torch.tensor(population_weight_)
     population_max_force_tensor = torch.tensor(population_max_force_)
 
@@ -235,7 +237,7 @@ while i < 100:
     writer.add_scalar("Metrics/Fittest Individual Max Force", max_force, step)
     # writer.add_scalar("Metrics/Population Fitness Variance", population_fitness_variance, step)
     writer.add_histogram("population_weight", population_weight_tensor, step)
-    writer.add_histogram("population_max_force", population_weight_tensor, step)
+    writer.add_histogram("population_max_force", population_max_force_tensor, step) # remove all values greater than 10kn
     writer.flush()
 
     # time.sleep(.1)
@@ -247,6 +249,7 @@ while i < 100:
     print("FORCES1 : : : ", forces)
     forces = [float(f) for f in forces] # fixed?
     print("FORCES2 : : : ", forces)
+    weight_vis = ga_modules.calc_weight(all_connections_vis, all_nodes_vis)
     # convert NaN to 0 in forces:
     # forces = [0 if str(f) == 'NaN' else f for f in forces] # not working!!!
     # VISUALIZE FITTEST INDIVIDUAL: -> each run needs a unique json
@@ -255,7 +258,9 @@ while i < 100:
         "all_connections": all_connections_vis,
         "all_nodes": all_nodes_vis,
         "forces": forces,
-        "population_fitness": population_fitness
+        #"population_fitness": population_fitness
+        "max_force": max([abs(force) for force in forces]),
+        "weight": weight_vis
     }
 
     # Load existing data
@@ -303,13 +308,17 @@ for i, individual in enumerate(population_post_fitness):
 
         _, _, _, forces = ftns.calc_fitness(all_connections_front, all_nodes_front)
         forces = [float(f) for f in forces] # fixed?
+        weight_front = ga_modules.calc_weight(all_connections_front, all_nodes_front)
+
         # add to json
         data = {
             "step": step,
             "all_connections": all_connections_front,
             "all_nodes": all_nodes_front,
             "forces": forces,
-            "population_fitness": 1
+            "population_fitness": 1,
+            "max_force": max([abs(force) for force in forces]),
+            "weight": weight_front
         }
 
         # Load existing data
