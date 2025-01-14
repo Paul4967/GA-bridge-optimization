@@ -39,11 +39,11 @@ writer = SummaryWriter(log_dir=log_dir)
 start_time = time.perf_counter()
 
 ### START ### ------------------------------------------------------------------------------
-base_nodes = [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0], [200.0, 200, 0], [100.03, 100, 30]] #[100.05, 100, 50]
-base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
+base_nodes = [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0]] #[100.05, 100, 50]
+base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0]]
 
-# base_nodes = [[0.0, 0, 0], [4.0, 4, 0], [8.0, 8, 0], [12.0, 12, 0], [160.0, 160, 0], [200.0, 200, 0]]
-# base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0]]
+# base_nodes = [[0.02, 0, 20], [40.02, 40, 20], [80.02, 80, 20], [120.02, 120, 20], [160.02, 160, 20]] #[100.05, 100, 50]
+# base_connections = [[0.02, 40.02], [40.02, 80.02], [80.02, 120.02], [120.02, 160.02]]
 ## divide by grid_size as well!^^
 
 ### Extra Node bei y = 4 oder 5
@@ -51,7 +51,7 @@ base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [1
 
 
 # MUTATION
-mutate_node_probability = 0.3
+mutate_node_probability = 0.3 # or lower?
 mutate_connection_probability = 0.3
 max_node_offset_multiplier = 1
 max_mutation_amplifier = 1
@@ -59,19 +59,19 @@ min_mutation_amplifier = 1
 
 # SELECTION
 # 10?
-tournament_size = 30
+tournament_size = 17 # hihger?
 num_selections = 50
 
 
 ### INITIALIZATION ###
 
 grid_size = 0.1
-build_area = 20 / grid_size, 7 / grid_size # float error?
+build_area = 16 / grid_size, 5 / grid_size # float error?
 
 population_size = 100
 
-min_node_percentage = 0.00025 # o.2 # FIX!!!
-max_node_percentage = 0.001 # 0.6 # * grid_size, times 10 / grind_size^2?
+min_node_percentage = 0.0001 # o.2 # FIX!!!
+max_node_percentage = 0.002 # 0.6 # * grid_size, times 10 / grind_size^2?
 
 
 # tf.summary.text('Population Size', f'Population Size: {population_size}', step=0)
@@ -87,7 +87,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 40:
+while i < 250:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
@@ -237,7 +237,8 @@ while i < 40:
     writer.add_scalar("Metrics/Fittest Individual Max Force", max_force, step)
     # writer.add_scalar("Metrics/Population Fitness Variance", population_fitness_variance, step)
     writer.add_histogram("population_weight", population_weight_tensor, step)
-    writer.add_histogram("population_max_force", population_max_force_tensor, step) # remove all values greater than 10kn
+    if population_max_force_:
+        writer.add_histogram("population_max_force", population_max_force_tensor, step) # remove all values greater than 10kn
     writer.flush()
 
     # time.sleep(.1)

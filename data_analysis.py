@@ -78,8 +78,8 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, max_force_displa
         # ax.text(node[1] + 0.1, node[2] + 0.1, f"({node[1]:.1f}, {node[2]:.1f})", 
             # fontsize=7, zorder=10)
     
-    ax.set_xlim(-1, 21)
-    ax.set_ylim(-1, 7)
+    ax.set_xlim(-1, 17)
+    ax.set_ylim(-1, 8)
 
     # Ensure equal scaling of both axes
     ax.set_aspect('equal', adjustable='box')
@@ -88,7 +88,7 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, max_force_displa
     ax.grid(True)
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
-    ax.set_title(f'weight: {weight}    max_force: {max_force_display}')
+    ax.set_title(f'weight: {weight:.2f}    max_force: {max_force_display:.2f}N')
 
     # Create custom legend entries for force and compression
     neutral_patch = mpatches.Patch(color=custom_cmap(norm(0)), label='None (Neutral Force)', linewidth=2)
