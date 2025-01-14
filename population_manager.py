@@ -51,15 +51,15 @@ base_connections = [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0]]
 
 
 # MUTATION
-mutate_node_probability = 0.3 # or lower?
-mutate_connection_probability = 0.3
+mutate_node_probability = 0.4 # or lower?
+mutate_connection_probability = 0.4
 max_node_offset_multiplier = 1
 max_mutation_amplifier = 1
 min_mutation_amplifier = 1
 
 # SELECTION
 # 10?
-tournament_size = 17 # hihger?
+tournament_size = 20 # hihger?
 num_selections = 50
 
 
@@ -70,8 +70,8 @@ build_area = 16 / grid_size, 5 / grid_size # float error?
 
 population_size = 100
 
-min_node_percentage = 0.0001 # o.2 # FIX!!!
-max_node_percentage = 0.002 # 0.6 # * grid_size, times 10 / grind_size^2?
+min_node_percentage = 0.001 # o.2 # FIX!!!
+max_node_percentage = 0.0025 # 0.6 # * grid_size, times 10 / grind_size^2?
 
 
 # tf.summary.text('Population Size', f'Population Size: {population_size}', step=0)
@@ -87,7 +87,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 250:
+while i < 220:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
