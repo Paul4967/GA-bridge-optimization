@@ -139,6 +139,10 @@ def analyze_truss(nodes, members, materials, loads, supports):
     formatted_displacements = format_nodal_displacements(displacements)
     return formatted_displacements, forces, stress_strain
 
+
+
+
+
 '''
 nodes = [Node(1, 1, 1),
 Node(2, 3, 1),

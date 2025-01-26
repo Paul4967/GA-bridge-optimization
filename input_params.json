@@ -1,0 +1,15 @@
+{
+    "base_nodes": "[[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0]]",
+    "base_connections": "[[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0]]",
+
+    "tournament_size": 20,
+    "num_selections": 50,
+    "population_size": 100,
+
+    "grid_size": 0.1,
+
+    "min_node_percentage": 0.001,
+    "max_node_percentage": 0.0025,
+
+    "max_generations": 220
+  }

@@ -1,10 +1,5 @@
-
-
 # weight = euclidean distance of each connection
-# max_load = maximal force exerted on a connection -> is lenght important?
-# is_connected = check if node is connected to (at least to or 3?) nodes. -> rewards in percentage of all beams (5 of 10 connected = 50%)
-
-# IMPORT NODES AND CONNECTIONS -> NO! --> IMPORT FITNESS FUNCTION INTO CONTROLLER, AND PASS CONNECTIONS TO IT!
+# max_load = maximal force exerted on a connection
 
 import ga_modules
 import math
@@ -12,50 +7,67 @@ import truss_calculator
 import copy
 
 
-base = {
-    "nodes": [
-        [0.0, 0, 0],
-        [2.0, 2, 0],
-        [4.0, 4, 0],
-        [6.0, 6, 0],
-        # ["b1", 0, 0],
-        # ["b2", 2, 0],
-        # ["b3", 4, 0],
-        # ["b4", 6, 0],
-    ],
-    "connections": [
-        [0.0, 2.0],
-        [2.0, 4.0],
-        [4.0, 6.0]
-    ]
-}
 
-bridge = {
-    "nodes": [
-        [1.1, 1, 1],
-        [3.1, 3, 1],
-        [5.1, 5, 1],
-        # [2.1, 2, 1]
-    ],
-    "connections": [
-        [0.0, 1.1],
-        [2.0, 1.1],
-        [2.0, 3.1],
-        [4.0, 3.1],
-        [4.0, 5.1],
-        [6.0, 5.1],
-        [1.1, 3.1],
-        [3.1, 5.1]
-    ]
-}
 
-# all_connections = bridge["connections"] + base["connections"]
-# all_nodes = bridge["nodes"] + base["nodes"]
+
+def calc_truss_failure_force(all_connections, forces, all_nodes):
+
+    grid_size = 0.1
+    
+    APPLIED_FORCE = 1000 #1kN
+
+    material_yield_strenght = 0.06e9 #GPa
+    material_elastic_modulus = 3.6e9 #GPa
+
+    # for squared beam:
+    width = 10e-3
+    CA = width ** 2 #cross-sectional area
+    I = (width * (width ** 3)) / 12 #Moment of inertia
+    K = 1.0 #Effective lenght factor (1.0 for pinned pinned)
+
+    failure_forces = []
+    
+    for connection, force in zip(all_connections, forces.values()):
+
+        if force > 0:
+            # calc yield_force
+            yield_force = material_yield_strenght * CA
+            failure_forces.append(yield_force)
+
+        elif force < 0:
+            id1, id2 = connection
+            x1, y1 = ga_modules.get_coords(id1, all_nodes)
+            x2, y2 = ga_modules.get_coords(id2, all_nodes)
+            # calculate distance
+            lenght = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2)) * grid_size ####"""EXTREMELY IMPORTANT"""
+
+            buckling_force = (math.pi**2 * material_elastic_modulus * I) / ((K * lenght)**2)
+            failure_forces.append(buckling_force)
+
+        else:
+            failure_forces.append(0)
+
+    failing_applied_forces = []
+    for member_force, failure_force in zip(forces.values(), failure_forces):
+        if member_force != 0:
+            failing_applied_forces.append(abs(failure_force / (member_force / APPLIED_FORCE)))
+        else:
+            failing_applied_forces.append(float("inf"))
+    
+    min_failure_force = min(failing_applied_forces)
+
+    return min_failure_force # max force that can be applied before one of the members is failing
+
+
+
+
+
+
+
 
 
 
 def calc_fitness(all_connections, all_nodes):
-
 
     # Create a dictionary to track the connections for each node
     connection_count = {node[0]: 0 for node in all_nodes}
@@ -69,20 +81,108 @@ def calc_fitness(all_connections, all_nodes):
     # Check if any node is connected less than 2 times
     for _, count in connection_count.items():
         if count < 2:
-            return 0, 0, 0, 0
-
-
-
+            return 0, 0, 0, 0 #return fitness of 0
 
     ### CHECK IF STABLE ###
     if ((len(all_nodes) * 2) - len(all_connections)) > 3:
-        return 0, 0, 0, 0
-
+        return 0, 0, 0, 0 #return fitness of 0
 
     ### ANALYZE TRUSS ### ---------------------------------------------------------------------------------------
+    # convert input data
+    converted_members, converted_nodes, materials, loads, supports = analyze_truss(all_connections, all_nodes)
 
+    ### ANALYZE ### ---------------------------------------------------------
+    try:
+        print(converted_members)
+        displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
+    except Exception as e:
+        print(f"Error during truss analysis: {e}")
+        return 0, 0, 0, 0
+
+    print("Nodal Displacements:")
+    for node, displacement in displacements.items():
+        print(f"{node}: {displacement:.6e}")
+
+    print("\nInternal Forces, Stress, and Strain:")
+    for member_id, values in stress_strain.items():
+        print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")
+
+
+
+    # check for nodal displacement
+    displacement_threshold = 1e+1 #10
+    for _, displacement in displacements.items():
+        if abs(displacement) > displacement_threshold:
+            return 0, 0, 0, 0
+
+
+    '''
+    ### FORCE VARIANCE ### ---------------------------------------------------
+    # 1 Average Force
+    avg_force = sum(abs(force) for force in forces.values()) / len(forces)
+    print(f"avg Force: {avg_force:.6e} N")
+
+    force_variance = sum((abs(force) - avg_force) ** 2 for force in forces.values()) / len(forces)
+    print(f"Force Variance: {force_variance:.6e} N^2")
+    # 2 Variance
+    '''
+
+    ### MAX FORCE ### --------------------------------------------------------
+    max_absolute_force = max(abs(force) for force in forces.values())
+    print(f"max abs Force: {max_absolute_force:.6e} N")
+
+    ### WEIGHT ### -----------------------------------------------------------
+    print(all_nodes)
+    weight = 0 # weight == total distance
+    for connection in all_connections:
+        id1, id2 = connection
+
+        x1, y1 = ga_modules.get_coords(id1, all_nodes)
+        x2, y2 = ga_modules.get_coords(id2, all_nodes)
+
+        # calculate distance
+        distance = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2))
+        weight += distance
+
+
+    
+    
+    truss_failure_force = calc_truss_failure_force(all_connections, forces, all_nodes)
+
+
+    ### CHECK IF FORCE IS EXCERTING LIMIT
+    if max_absolute_force > 10000:
+        return 0, 0, 0, 0
+
+    # pass to pop_manager     #exchanged max_absolute_force with truss_failure_force
+    return 0, weight, truss_failure_force, forces.values() #all forces of an individual -> for visualization purposes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def analyze_truss(all_connections, all_nodes):
     ### convert node format ### -----------------------------------------
-
     all_nodes_ = copy.deepcopy(all_nodes)
     for index, node in enumerate(all_nodes_):
         node.insert(0, index + 1)
@@ -111,17 +211,13 @@ def calc_fitness(all_connections, all_nodes):
     for node in converted_nodes:
         print(node)
 
-
     ### convert connection format ### -----------------------------------------
-
-
     id_to_index = {node[1]: node[0] for node in all_nodes_}
     print("ID to Index Mapping:", id_to_index)
     all_connections_ = [
         [id_to_index[node_id] for node_id in connection] for connection in all_connections
     ]
     print("ALL C:", all_connections_)
-
 
     # Define the Member class
     class Member:
@@ -148,10 +244,7 @@ def calc_fitness(all_connections, all_nodes):
     for member in converted_members:
         print(member)
 
-
-
     ### other inputs ###
-
     class Material:
         def __init__(self, id, E, A):
             self.id = id
@@ -170,157 +263,10 @@ def calc_fitness(all_connections, all_nodes):
             self.x_support = x_support
             self.y_support = y_support
 
-    materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
-    loads = [Load(2, 0, -1000), Load(3, 0, -1000), Load(4, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
+    # materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
+    # loads = [Load(2, 0, -1000), Load(3, 0, -1000), Load(4, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
+    materials = [Material(1, 3.6E9, 0.0005625)]  # A = 10^-6 m^2 ? 
+    loads = [Load(3, 0, -1000)]
     supports = [Support(1, True, True), Support(5, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
 
-
-
-    ### ANALYZE ### ---------------------------------------------------------
-
-    try:
-        print(converted_members)
-        displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
-    except Exception as e:
-        print(f"Error during truss analysis: {e}")
-        return 0, 0, 0, 0
-
-    print("Nodal Displacements:")
-    for node, displacement in displacements.items():
-        print(f"{node}: {displacement:.6e}")
-
-    print("\nInternal Forces, Stress, and Strain:")
-    for member_id, values in stress_strain.items():
-        print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")
-
-
-
-
-
-
-    ### FORCE VARIANCE ### ---------------------------------------------------
-
-    # 1 Average Force
-    avg_force = sum(abs(force) for force in forces.values()) / len(forces)
-    print(f"avg Force: {avg_force:.6e} N")
-
-    force_variance = sum((abs(force) - avg_force) ** 2 for force in forces.values()) / len(forces)
-    print(f"Force Variance: {force_variance:.6e} N^2")
-    # 2 Variance
-
-
-    ### MAX FORCE ### --------------------------------------------------------
-    max_absolute_force = max(abs(force) for force in forces.values())
-    print(f"max abs Force: {max_absolute_force:.6e} N")
-
-
-    ### WEIGHT ### -----------------------------------------------------------
-    print(all_nodes)
-    weight = 0 # weight == total distance
-    for connection in all_connections:
-        id1, id2 = connection
-
-        x1, y1 = ga_modules.get_coords(id1, all_nodes)
-        x2, y2 = ga_modules.get_coords(id2, all_nodes)
-
-        # calculate distance
-        distance = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2))
-        weight += distance
-
-    print(f'Weight: {weight}')
-        
-
-    ### NOT CONNECTED PENALTY ### --------------------------------------------            ### UNFINISHED
-    num_of_unconnected_nodes = 0
-    for node in all_nodes: 
-        if sum(node[0] in connection for connection in all_connections) < 2:
-            num_of_unconnected_nodes += 1
-
-
-
-
-
-    ### OVERALL FITNESS EQUATION ### -----------------------------------------
-    # weights
-    w1 = 1
-    w2 = 10 # because 1/max force is way smaller than weight
-    w3 = 1
-    max_absolute_force = float(max_absolute_force)
-    force_variance = float(force_variance)
-    
-    # fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))  * (1 / (1 + force_variance))) * 100
-    fitness = (w1 * (1 /(1 + weight)) + (w2 * (1 / (1 + max_absolute_force)))) * 100
-
-    return fitness, weight, max_absolute_force, forces.values() #all forces of an individual -> for visualization purposes
-
-
-
-
-"""STORE ARRAY WITH: INDEX, MAX_FORCE, WEIGHT for each individual"""
-"""HANDLE IF TRUSS IS INDETERMINATE AND UNSTABLE -> IF WEIGHT AND FORCES ARE 0, FITNESS == 0"""
-
-
-
-
-
-
-
-
-### FOR VISUALIZING FITTEST INDIVIDUAL ### ------------------------
-
-all_connections =  [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [2.0, 2.1], [2.1, 1.2], [4.0, 5.1], [3.2, 4.3], [3.2, 3.1], [2.0, 1.1], [0.2, 0.0], [0.3, 1.3], [0.3, 0.2], [1.2, 2.2], [5.1, 6.0], [1.2, 0.0], [2.2, 3.1], [3.1, 4.0], [6.0, 6.1], [0.0, 1.3], [3.1, 2.0], [0.2, 1.3], [3.1, 1.2], [5.1, 6.1], [3.1, 5.1], [2.2, 1.3], [6.2, 6.1], [1.2, 1.3], [1.1, 0.0], [1.1, 1.2], [6.2, 6.3], [4.3, 6.3], [4.3, 2.2], [4.3, 1.3], [4.3, 6.1], [4.3, 3.1], [4.3, 5.1], [3.1, 2.1], [1.1, 2.1], [6.2, 4.3], [4.2, 4.3], [4.2, 5.1]]
-all_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [6.1, 6, 1], [1.2, 1, 2], [6.2, 6, 2], [1.3, 1, 3], [0.2, 0, 2], [1.1, 1, 1], [3.2, 3, 2], [0.3, 0, 3], [5.1, 5, 1], [6.3, 6, 3], [2.2, 2, 2], [4.3, 4, 3], [3.1, 3, 1], [2.1, 2, 1], [4.2, 4, 2]]
-_, _, _, result = calc_fitness(all_connections, all_nodes)
-print("\n\nFORCES::", result)
-### population_manager: wrong fitness requested? -> ..._vis is wrong?
-
-### WRITE FORCES TO JSON CAN JSON:
-result = [float(f) for f in result]
-import json
-data = {
-    "forces":result
-}
-
-# Save the data to a json file
-file_path = 'connections_and_nodes.json'
-with open(file_path, 'w') as f:
-    json.dump(data, f)
-
-file_path
-
-print("saved to file")
-
-
-
-
-############################################################
-
-
-# print("RETUNR: ", calc_fitness(bridge["connections"] + base["connections"], bridge["nodes"] + base["nodes"]))
-print("RETUNR 2: ", calc_fitness([[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [4.2, 4.0], [3.2, 4.2],  
-                               [4.2, 6.0], [3.2, 4.0], [3.2, 0.0], [2.0, 3.2]], 
-                                 [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], 
-                         [4.2, 4, 2], [3.2, 3, 2]]))
-# all_connections = bridge["connections"] + base["connections"]
-# all_nodes = bridge["nodes"] + base["nodes"]
-
-
-
-########################### TRUSS CALCULATOR WORKS!!!
-###########################
-###########################
-###########################
-###########################
-###########################
-###########################
-
-
-def is_determinate(all_nodes, all_connections):
-    # maybe schon durch truss analysis aussortiert
-    ...
-
-
-### not connected node penalty
-### divide all penalties by amount of nodes or beams, to avoid bridges with less nodes / beams to score higher
-
-# first calculate if stable, or unstalbe with m+r - 2j > 0 -> or just use truss force calc? -> test cases!
+    return converted_members, converted_nodes, materials, loads, supports

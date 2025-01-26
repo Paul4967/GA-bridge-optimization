@@ -1,158 +1,157 @@
-# all_nodes: nodes from base and bridge
-# all_connections: connections from base and bridge
+import numpy as np
 
-def generate_id(x, y):
-    second_value_str = str(y)
-    # Move trailing zeros to the front
-    if second_value_str.endswith('0'):
-        # Count the number of trailing zeros
-        trailing_zeros = len(second_value_str) - len(second_value_str.rstrip('0'))
-        # Move trailing zeros to the front
-        second_value_str = '0' * trailing_zeros + second_value_str.rstrip('0')
+class Node:
+    def __init__(self, id, x, y):
+        self.id = id
+        self.x = x
+        self.y = y
 
-    # Format the ID as requested, converting it to a numeric value
-    formatted_id = float(f"{x}.{second_value_str}")
-    return formatted_id
+class Member:
+    def __init__(self, id, node1, node2, material_id):
+        self.id = id
+        self.node1 = node1
+        self.node2 = node2
+        self.material_id = material_id
 
-def get_coords(id_value, all_nodes):
-    # Split the ID into the integer and fractional parts
-    x = int(str(id_value).split('.')[0])  # Extract the integer part (x)
-    fractional_part = str(id_value).split('.')[1]  # Extract the fractional part as a string
+class Material:
+    def __init__(self, id, E, A):
+        self.id = id
+        self.E = E  # Young's modulus
+        self.A = A  # Cross-sectional area
 
-    # Handle leading zeros in the fractional part
-    trailing_zeros = len(fractional_part) - len(fractional_part.lstrip('0'))
-    # Reconstruct y by appending the trailing zeros to the fractional part
-    y = int(fractional_part.lstrip('0') + '0' * trailing_zeros)
+class Load:
+    def __init__(self, node_id, fx, fy):
+        self.node_id = node_id
+        self.fx = fx
+        self.fy = fy
 
-    return x, y # check if in all_nodes? -> valueError if not?
+class Support:
+    def __init__(self, node_id, x_support, y_support):
+        self.node_id = node_id
+        self.x_support = x_support
+        self.y_support = y_support
 
+def assemble_stiffness_matrix(nodes, members, materials):
+    num_dof = 2 * len(nodes)
+    K_global = np.zeros((num_dof, num_dof))
 
-'''
-def get_coords(id, all_nodes):
-    for node in all_nodes:
-        if node[0] == id:
-            return node[1], node[2]
-    raise ValueError(f"ID {id} not found in available nodes.")
-'''
-
-
-def calcRotation(point1, point2, point3, all_nodes):
-    
-    # nodes can be from child, or basenodes
-    point1_ = next((node[1:] for node in all_nodes if node[0] == point1), None)
-    point2_ = next((node[1:] for node in all_nodes if node[0] == point2), None)
-    point3_ = next((node[1:] for node in all_nodes if node[0] == point3), None)
-
-    rotation = (point2_[1] - point1_[1]) * (point3_[0] - point2_[0]) - (point3_[1] - point2_[1]) * (point2_[0] - point1_[0])
-    # rotation > 0 = right, = 0 -> straight 
-    rotation = (point2_[1] - point1_[1]) * (point3_[0] - point2_[0]) - (point3_[1] - point2_[1]) * (point2_[0] - point1_[0])
-    # rotation > 0 = right, = 0 -> straight 
-
-    direction = 1 if rotation > 0 else (-1 if rotation < 0 else 5) # to prevent linear on 1 line parallel connecting beams from being deleted in if statement below
-    return direction
-
-
-
-
-def connection_is_possible(id1, id2, all_connections, all_nodes, allow_splitting):
-    x1, y1 = get_coords(id1, all_nodes)
-    x2, y2 = get_coords(id2, all_nodes)
-
-    # remove node (id1, id2) from all_connections first. so it is not compared to itself, while not removing duplicates
-    '''
-    removed = False
-    filtered_connections = []
-    for connection in all_connections:
-        if not removed and connection[0] == id1 and connection[1] == id2:
-            removed = True
-            continue  # Skip this connection
-        filtered_connections.append(connection)
-
-    all_connections = filtered_connections
-    '''
-    # id which we are testing for isn't even in all_connections! <- this is from initialization
-
-    for connection in all_connections:
-        id1_, id2_ = connection
+    for member in members:
+        n1 = nodes[member.node1 - 1]
+        n2 = nodes[member.node2 - 1]
+        material = materials[member.material_id - 1]
         
-        if min(id1, id2) == min(id1_, id2_) and max(id1, id2) == max(id1_, id2_):
-            print("ERROR: duplicate node") # isnt this ruled out by overlay calculations later?
-            return False #or continue?
-        
-        
-        [x1_, y1_] = get_coords(id1_, all_nodes)
-        [x2_, y2_] = get_coords(id2_, all_nodes)
+        L = np.sqrt((n2.x - n1.x)**2 + (n2.y - n1.y)**2)
+        c = (n2.x - n1.x) / L
+        s = (n2.y - n1.y) / L
 
-        
-        # print("con1: ", id1, id2, "con2: ", id1_, id2_)
-        slope1 = (y2 - y1) / (x2 - x1) if x2 != x1 else float('inf') # slope of new theoretical connection
-        slope2 = (y2_ - y1_) / (x2_ - x1_) if x2_ != x1_ else float('inf')
+        k_local = (material.E * material.A / L) * np.array([
+            [ c*c,  c*s, -c*c, -c*s],
+            [ c*s,  s*s, -c*s, -s*s],
+            [-c*c, -c*s,  c*c,  c*s],
+            [-c*s, -s*s,  c*s,  s*s]
+        ])
 
-        # check for overlay
-        # check if b is equal
-        b1 = (slope1 * x1) - y1
-        b2 = (slope2 * x1_) - y1_
-        if slope1 == slope2 and b1 == b2 and slope1 != float('inf') and max(x1, x2) > min(x1_, x2_) and max(x1_, x2_) > min(x1, x2): # 1 has to be left and 2 has to be right
-            print ("x-overlap")
-            return False
-        # logic for infinite slope
-        elif slope1 == float('inf') and slope2 == float('inf') and x1 == x1_:
-            if max(y1, y2) > min(y1_, y2_) and max(y1_, y2_) > min(y1, y2):
-                print("y-overlap")
-                return False
-        else:
-            # test for crossing
-            [p1, q1] = [id1, id2]
-            [p2, q2] = [id1_, id2_] 
-            if calcRotation(p1, q1, p2, all_nodes) + calcRotation(p1, q1, q2, all_nodes) == 0 and calcRotation(p2, q2, p1, all_nodes) + calcRotation(p2, q2, q1, all_nodes) == 0:
-                print (id1, id2, "is crossing with ", id1_, id2_)
-                print(get_coords(id1, 1), get_coords(id2, 1), get_coords(id1_, 1), get_coords(id2_, 1)) # correct
-                # print("ROTATION: ", calcRotation(p1, q1, p2, all_nodes)) # not false !
-                # print(all_nodes) # correct
-                return False
-            
-            
-    for node in all_nodes:
-        _, x3, y3 = node
+        indices = [2*(member.node1-1), 2*(member.node1-1)+1, 2*(member.node2-1), 2*(member.node2-1)+1]
 
-        # Check if the node lies within the bounds of the connection
-        in_bound_of_connection = (
-            (x1 == x2 and min(y1, y2) < y3 < max(y1, y2) and x3 == x1) or  # Vertical connection
-            (y1 == y2 and min(x1, x2) < x3 < max(x1, x2) and y3 == y1) or  # Horizontal connection
-            (min(x1, x2) < x3 < max(x1, x2) and min(y1, y2) < y3 < max(y1, y2))  # Diagonal connection
-        )
+        for i in range(4):
+            for j in range(4):
+                K_global[indices[i], indices[j]] += k_local[i, j]
 
-        if abs(x1*(y2 - y3) + x2*(y3 - y1) + x3*(y1 - y2)) == 0 and in_bound_of_connection:  # calculate triangle area
-            print(f'connection {x1, y1}, {x2, y2} is crossing with point: {node}')
+    return K_global
 
-            if allow_splitting:
-                split_c1 = [generate_id(x1, y1), generate_id(x3, y3)]
-                split_c2 = [generate_id(x2, y2), generate_id(x3, y3)]
-                print(split_c1, split_c2)
-                return split_c1, split_c2
-                                    
-            return False
-                    
-    print("WORKING")
-    return True
+def apply_supports(K_global, supports):
+    for support in supports:
+        node_id = support.node_id - 1
+        if support.x_support:
+            K_global[2*node_id, :] = 0
+            K_global[:, 2*node_id] = 0
+            K_global[2*node_id, 2*node_id] = 1
+        if support.y_support:
+            K_global[2*node_id+1, :] = 0
+            K_global[:, 2*node_id+1] = 0
+            K_global[2*node_id+1, 2*node_id+1] = 1
+    return K_global
 
+def assemble_load_vector(nodes, loads):
+    F = np.zeros(2 * len(nodes))
+    for load in loads:
+        node_id = load.node_id - 1
+        F[2*node_id] = load.fx
+        F[2*node_id + 1] = load.fy
+    return F
 
-def filter_connections(id1, id2, all_connections):
-    removed = False
-    filtered_connections = []
-    for connection in all_connections:
-        if not removed and connection[0] == id1 and connection[1] == id2:
-            removed = True
-            continue  # Skip this connection
-        filtered_connections.append(connection)
+def solve_displacements(K, F):
+    displacements = np.linalg.solve(K, F)
+    return displacements
 
-    return filtered_connections
+def calculate_internal_forces(members, materials, displacements):
+    internal_forces = {}
+    for member in members:
+        material = materials[member.material_id - 1]
+        n1 = nodes[member.node1 - 1]
+        n2 = nodes[member.node2 - 1]
+
+        u1 = displacements[2*(member.node1-1):2*(member.node1-1)+2]
+        u2 = displacements[2*(member.node2-1):2*(member.node2-1)+2]
+
+        L = np.sqrt((n2.x - n1.x)**2 + (n2.y - n1.y)**2)
+        c = (n2.x - n1.x) / L
+        s = (n2.y - n1.y) / L
+
+        delta = np.dot([-c, -s, c, s], np.hstack([u1, u2]))
+        N = material.E * material.A * delta / L
+        internal_forces[member.id] = N
+    return internal_forces
 
 
+def compute_stress_strain(members, materials, internal_forces):
+    stress_strain = {}
+    for member in members:
+        material = materials[member.material_id - 1]
+        force = internal_forces[member.id]
+        stress = force / material.A
+        strain = stress / material.E
+        stress_strain[member.id] = {"stress": stress, "strain": strain}
+    return stress_strain
 
-### Debug
+def format_nodal_displacements(nodal_displacements):
+    formatted_displacements = {}
+    for i, displacement in enumerate(nodal_displacements):
+        node_id = i // 2 + 1
+        direction = 'x' if i % 2 == 0 else 'y'
+        formatted_displacements[f'Node {node_id} {direction}'] = displacement
+    return formatted_displacements
 
-base_nodes = [[0.0, 0, 0], [20.0, 20, 0], [40.0, 40, 0], [60.0, 60, 0], [80.0, 80, 0], [100.0, 100, 0], [40.03, 40, 30], [0.03, 0, 30]]
-base_connections = [[0.0, 40.03], [0.0, 20.0], [20.0, 40.0], [40.0, 60.0], [60.0, 80.0], [80.0, 100.0]]
+# Modify the main analysis workflow to include stress and strain calculations
+def analyze_truss(nodes, members, materials, loads, supports):
+    K_global = assemble_stiffness_matrix(nodes, members, materials)
+    K_global = apply_supports(K_global, supports)
+    F = assemble_load_vector(nodes, loads)
+    displacements = solve_displacements(K_global, F)
+    forces = calculate_internal_forces(members, materials, displacements)
+    stress_strain = compute_stress_strain(members, materials, forces)
+    formatted_displacements = format_nodal_displacements(displacements)
+    return formatted_displacements, forces, stress_strain
 
-print("RESULT:::::::::::::::::", connection_is_possible(20.0, 0.03, base_connections, base_nodes, False))
+nodes = [Node(1, 0, 0),
+Node(2, 2, 0),
+Node(3, 4, 0),
+Node(4, 1, 1),
+Node(5, 3, 1)]
+
+members = [Member(1, 1, 2, 1), Member(2, 2, 3, 1), Member(3, 1, 4, 1), Member(4, 4, 2, 1), Member(5, 2, 5, 1), Member(6, 5, 3, 1), Member(7, 4, 5, 1)]
+
+materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
+loads = [Load(2, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
+supports = [Support(1, True, True), Support(3, False, True)] # Fixing both x and y displacements at node 1 and only y displacement at node 12.
+
+if __name__ == "__main__":
+    displacements, forces, stress_strain = analyze_truss(nodes, members, materials, loads, supports)
+
+    print("Nodal Displacements:")
+    for node, displacement in displacements.items():
+        print(f"{node}: {displacement:.6e}")
+
+    print("\nInternal Forces, Stress, and Strain:")
+    for member_id, values in stress_strain.items():
+        print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")

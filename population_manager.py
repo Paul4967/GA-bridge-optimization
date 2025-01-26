@@ -87,7 +87,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 220:
+while i < 250:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs
@@ -166,14 +166,14 @@ while i < 220:
         print("all_nodes: ", all_nodes)
         print("all_connections: ", all_connections)
 
-        fitness, weight, max_force, _ = ftns.calc_fitness(copy.deepcopy(all_connections), copy.deepcopy(all_nodes))
+        _, weight, max_force, _ = ftns.calc_fitness(copy.deepcopy(all_connections), copy.deepcopy(all_nodes))
 
         population_post_fitness.append((bridge_nodes, bridge_connections))
         population_weight.append(weight)
-        population_max_force.append(max_force)
+        population_max_force.append(1 / (1 + max_force)) #ACTUALLY NOT MAX_FORCE, BUT FAILURE_FORCE!!!!# bc it should be maximized
         # wrong fitness: population_fitness.append(fitness)
     
-    ## get population local fitness
+    ## get population local fitness                                              
     population_fitness = pareto.pareto_local_fitness(population_post_mutation, population_max_force, population_weight)
 
         
@@ -221,7 +221,8 @@ while i < 220:
 
     population_fitness_variance = np.var(population_fitness)
 
-
+    """TEMPORARY!"""
+    max_force = (1 - max_force) / max_force
 
 
     ## TENSORBOARD ADD HISTOGRAMS
