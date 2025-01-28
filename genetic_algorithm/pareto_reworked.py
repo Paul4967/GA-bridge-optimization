@@ -2,43 +2,31 @@
 import numpy as np
 import math
 
-################
-
-
-################
 # population: bridge_nodes, bridge_connections
-
-# failure_fore: 1/1+failure_force
-
-
 
 def pareto_fronts(individuals):
 
-    ### LOGIC FOR REMOVING INDETERMINABLE TRUSSES ### 
-    ### -> remove from individuals
+    # logic for removing indetermineable trusses
     individuals = [individual for individual in individuals if individual[1] != 0 and individual[2] != 0]
     individuals = [individual for individual in individuals if not math.isnan(individual[1]) and not math.isnan(individual[2])] # FILTER NaN
 
     ### START MAIN PROCESS ### --------------------
-
     fronts = []
     while individuals: # individuals list is not empty
-        # front = []
         non_dominated = []  # Collect non-dominated individuals
 
         for individual in individuals:
-            
             is_dominated = False
             for other in individuals:
                 if other == individual:
-                    continue  # Skip comparing the individual with itself
+                    continue  # Skip comparing to itself
 
-                _, individual_max_force, individual_weight = individual
-                _, other_max_force, other_weight = other
+                _, individual_failure_force, individual_weight = individual
+                _, other_failure_force, other_weight = other
 
-                
-                if all(o <= i for o, i in zip((other_max_force, other_weight), (individual_max_force, individual_weight))) and \
-                    any(o < i for o, i in zip((other_max_force, other_weight), (individual_max_force, individual_weight))):
+                # check if individual is being dominated by 'other'
+                if all(o <= i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))) and \
+                    any(o < i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))):
                         is_dominated = True
                         break
             if not is_dominated:
@@ -46,37 +34,37 @@ def pareto_fronts(individuals):
      
         # Remove the current front individuals from the list
         individuals = [individual for individual in individuals if individual not in non_dominated]
-        fronts.append(non_dominated)
-
+        fronts.insert(0, non_dominated)
     return fronts
 
 
 
 def crowding_distance(front):
     # sort front by weight
-    # Number of individuals in the front
     num_individuals = len(front)
     
     # Initialize crowding distances to zero
     distances = [0] * num_individuals
     
-    # Sort by first objective (max_force)
-    front_sorted_by_max_force = sorted(front, key=lambda x: x[1])
+    # Sort by first objective (failure_force)
+    front_sorted_by_failure_force = sorted(front, key=lambda x: x[1])
 
-    print("DEBUG __", num_individuals, front_sorted_by_max_force, "\n\n", front)
+    print("DEBUG __", num_individuals, front_sorted_by_failure_force, "\n\n", front)
     
-    # Calculate crowding distance for max_force
+    # Calculate crowding distance for failure_force
     distances[0] = distances[-1] = float('inf')  # Boundary individuals have infinite crowding distance
     for i in range(1, num_individuals - 1):
-        if front_sorted_by_max_force[-1][1] - front_sorted_by_max_force[0][1] == 0: ############ IF ALL VALUES ARE THE SAME
+        if front_sorted_by_failure_force[-1][1] - front_sorted_by_failure_force[0][1] == 0: ############ IF ALL VALUES ARE THE SAME
             distances[i] += 0
             continue
 
-        distances[i] += (front_sorted_by_max_force[i + 1][1] - front_sorted_by_max_force[i - 1][1]) / \
-                        (front_sorted_by_max_force[-1][1] - front_sorted_by_max_force[0][1])
+        distances[i] += (front_sorted_by_failure_force[i + 1][1] - front_sorted_by_failure_force[i - 1][1]) / \
+                        (front_sorted_by_failure_force[-1][1] - front_sorted_by_failure_force[0][1])
     
     # Sort by second objective (weight)
-    front_sorted_by_weight = front_sorted_by_max_force
+    # front_sorted_by_weight = front_sorted_by_failure_force
+    front_sorted_by_weight = sorted(front, key=lambda x: x[2])  # x[2] is the weight
+
     
     # Calculate crowding distance for weight
     for i in range(1, num_individuals - 1):
@@ -95,21 +83,22 @@ def crowding_distance(front):
     
 
 
-### front format: [individual, max_force, weight]
-def calc_fitness(population, max_force, weight):
+### front format: [individual, failure_force, weight]
+def calc_fitness(population, failure_force, weight):
     ## INITIATE ##
     indices = list(range(len(population)))
-    individuals = list(zip(indices, max_force, weight))
-
+    individuals = list(zip(indices, failure_force, weight))
 
     p_fronts = pareto_fronts(individuals)
+    for front in p_fronts:
+        print(":::::FRONT::::::: ", front)
 
     for front_index, front in enumerate(p_fronts, start=1): # FRONT IS SORTED BY INDEX AND NOT BY WEIGHT
         crowding_distance_values = crowding_distance(front)
-        front = sorted(front, key=lambda x: x[1])  ################### SORTING FRONT BY MAX_FORCE!! #######################
+        front = sorted(front, key=lambda x: x[1]) # sorting front by failure_force
 
         for i in range(len(front)):
-            front_list = list(front[i]) # FIX
+            front_list = list(front[i])
             if crowding_distance_values[i] == float('inf'):
                 cd_distance = 3
             else:
@@ -126,14 +115,19 @@ def calc_fitness(population, max_force, weight):
 
 
 
-def pareto_local_fitness(population, max_force, weight):
-    failure_force = 1 / (1 + failure_force) # maximize failure_force
-    pareto_fronts_ftns = calc_fitness(population, max_force, weight)
+
+
+
+
+
+
+
+
+
+def pareto_local_fitness(population, failure_force, weight): # failure_forces and weights!
+    pareto_fronts_ftns = calc_fitness(population, failure_force, weight)
 
     flattened_pff = [item for sublist in pareto_fronts_ftns for item in sublist]
-    # sorted_pff = sorted(flattened_pff, key=lambda x: x[0])
-    # print("SORTED PF: ", sorted_pff)
-
     ### FIX ARRAY LENGHT ### ----------------------------------
 
     array_lenght = len(population)
@@ -158,14 +152,9 @@ def pareto_local_fitness(population, max_force, weight):
 
 
 
-
-
-### PASS FITNESS TO FITNESS.PY
-
-
-def get_individual_to_vis(population, max_force, weight):
+def get_individual_to_vis(population, failure_force, weight):
     # get first pareto_line
-    pareto_fronts_ = calc_fitness(population, max_force, weight)
+    pareto_fronts_ = calc_fitness(population, failure_force, weight)
     first_front = pareto_fronts_[0]
     first_item = first_front[0]
     f_x = first_item[1]
@@ -193,27 +182,66 @@ def get_individual_to_vis(population, max_force, weight):
             closest_index = index
 
 
-    # -> letzendlich brauche ich bloß den index von dem individual
-    # damm kann ich im manager den rest requesten!
     return closest_index
 
 
+'''
 population = [[1,2], [1,2], [1,2], [1,2], [1,2], [1,2], [1,2]] # population ist ja eigendlich bridge_nodes und bridge_connections
-max_force = [11, 12, 13, 14, 15, 13, 0]
+failure_force = [11, 12, 13, 14, 15, 13, 0]
 weight = [5, 0, 7, 2, 3, 4, 0]
 indices = list(range(len(population)))
-individuals = list(zip(indices, max_force, weight)) # index instead of population? -> then later combine all fronts and sort?
+individuals = list(zip(indices, failure_force, weight)) # index instead of population? -> then later combine all fronts and sort?
 ### FITNESS MUST BE IN SAME ORDER AS POPULATION ARRAY!!!
-print("INDIVIDUAL TO VIS:", get_individual_to_vis(population, max_force, weight))
-print("FITNES : : : : : : : ", pareto_local_fitness(population, max_force, weight))
-print("PARETO FRONTS: ", calc_fitness(population, max_force, weight))
-
-# not as many fitness as individuals in population!
-
-
-
+print("INDIVIDUAL TO VIS:", get_individual_to_vis(population, failure_force, weight))
+print("FITNES : : : : : : : ", pareto_local_fitness(population, failure_force, weight))
+print("PARETO FRONTS: ", calc_fitness(population, failure_force, weight))
+'''
    
 ### https://www.researchgate.net/publication/330704486_Search_Acceleration_of_Evolutionary_Multi-Objective_Optimization_Using_an_Estimated_Convergence_Point
 
 
 
+
+
+###
+### DEBUG
+###
+
+
+# Sample population: Bridge nodes and connections
+population = [
+    [1, 2],  # Example individual 1
+    [3, 4],  # Example individual 2
+    [5, 6],  # Example individual 3
+    [7, 8],  # Example individual 4
+    [9, 10], # Example individual 5
+    [11, 12],# Example individual 6
+    [13, 14] # Example individual 7
+]
+
+# Failure force values (objective to maximize)
+failure_force = [
+    15,  # High failure force
+    20,  # Higher failure force
+    5,   # Low failure force
+    25,  # Very high failure force
+    10,  # Moderate failure force
+    8,   # Low failure force
+    18   # High failure force
+]
+
+# Weight values (objective to minimize)
+weight = [
+    12,  # High weight
+    5,   # Low weight
+    20,  # Very high weight
+    8,   # Moderate weight
+    12,  # High weight
+    3,   # Very low weight
+    15    # Moderate weight
+]
+
+
+results = pareto_local_fitness(population, failure_force, weight)
+for result in results:
+    print("FITNESS:", result)
