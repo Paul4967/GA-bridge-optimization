@@ -217,7 +217,7 @@ while i < 250:
     i += 1
     fitness = population_fitness[max_fitness_index]
     weight = population_weight[index_vis]
-    max_force = population_max_force[index_vis]
+    max_force = population_max_force[index_vis] #old?
 
     population_fitness_variance = np.var(population_fitness)
 

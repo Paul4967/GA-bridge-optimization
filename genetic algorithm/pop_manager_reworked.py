@@ -75,7 +75,8 @@ try:
         MAX_NODE_PERCENTAGE = INPUT_PARAMS.get("max_node_percentage", 0.0)
         MAX_GENERATIONS = INPUT_PARAMS.get("max_generations", 0)
 
-
+        ## + yield Strenght, E Modul, diameter
+        ## truss_calc: use squared members!
 
 except FileNotFoundError:
     print(f"Error: {json_file_path} does not exist.")
@@ -86,7 +87,7 @@ except json.JSONDecodeError as e:
 
 
 
-
+####################################################################
 ### EVOLUTION ### --------------------------------------------------
 
 # Initialize population
@@ -114,11 +115,58 @@ for generation in range(MAX_GENERATIONS):
     '''
     FIX MUTATION SCRIPT
     '''
+    population_post_mutation = []
 
 
     ### FITNESS CALCULATION ### -----------------------
     '''
-    REWORK FITNESS (Compression + Max_Force)
     '''
 
+    population_post_fitness = []
 
+    population_weight = []
+    population_failure_force = []
+
+    population_fitness = []
+
+    for individual in population_post_mutation: # change to mutation
+        bridge_nodes, bridge_connections = individual
+        all_nodes = BASE_NODES + bridge_nodes
+        all_connections = BASE_CONNECTIONS + bridge_connections
+
+        _, weight, truss_failure_force, forces = ftns.calc_fitness(all_connections, all_nodes)#+threshold, ...
+
+        population_post_fitness = population_post_mutation #irr
+        population_weight.append(weight)
+        population_failure_force.append(truss_failure_force)
+
+        ### DETERMINE FITNESS ------------------------
+        "pareto fitness" #maximize failure_force + pass to matplotlib script
+        population_fitness = ...
+
+        "display fittest thing" #new pareto script here
+        index_vis = pareto.get_individual_to_vis(population_post_mutation, population_failure_force, population_weight)
+        bridge_nodes_vis, bridge_connections_vis = population_post_fitness[index_vis]
+
+
+    
+
+    ### SELECTION ### ----------------------------------
+    selected_population = selection.tournament_selection(population_post_fitness, population_fitness, TOURNAMENT_SIZE, NUM_SELECTIONS)
+    population = selected_population
+
+
+
+    ### TENSORBOARD ###
+    weight = population_weight[index_vis]
+    failure_force = population_failure_force[index_vis]
+
+
+    # Histograms
+
+
+    # Line-charts
+
+
+
+    ###

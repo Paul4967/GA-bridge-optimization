@@ -67,7 +67,7 @@ def calc_truss_failure_force(all_connections, forces, all_nodes):
 
 
 
-def calc_fitness(all_connections, all_nodes):
+def calc_fitness(all_connections, all_nodes): #+ DISPLACEMENT_THRESHOLD AND max_force_ratio??
 
     # Create a dictionary to track the connections for each node
     connection_count = {node[0]: 0 for node in all_nodes}
@@ -83,7 +83,7 @@ def calc_fitness(all_connections, all_nodes):
         if count < 2:
             return 0, 0, 0, 0 #return fitness of 0
 
-    ### CHECK IF STABLE ###
+    # CHECK IF STABLE
     if ((len(all_nodes) * 2) - len(all_connections)) > 3:
         return 0, 0, 0, 0 #return fitness of 0
 
@@ -91,22 +91,13 @@ def calc_fitness(all_connections, all_nodes):
     # convert input data
     converted_members, converted_nodes, materials, loads, supports = analyze_truss(all_connections, all_nodes)
 
-    ### ANALYZE ### ---------------------------------------------------------
+    # Analyze
     try:
         print(converted_members)
         displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
     except Exception as e:
         print(f"Error during truss analysis: {e}")
         return 0, 0, 0, 0
-
-    print("Nodal Displacements:")
-    for node, displacement in displacements.items():
-        print(f"{node}: {displacement:.6e}")
-
-    print("\nInternal Forces, Stress, and Strain:")
-    for member_id, values in stress_strain.items():
-        print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")
-
 
 
     # check for nodal displacement
@@ -116,23 +107,7 @@ def calc_fitness(all_connections, all_nodes):
             return 0, 0, 0, 0
 
 
-    '''
-    ### FORCE VARIANCE ### ---------------------------------------------------
-    # 1 Average Force
-    avg_force = sum(abs(force) for force in forces.values()) / len(forces)
-    print(f"avg Force: {avg_force:.6e} N")
-
-    force_variance = sum((abs(force) - avg_force) ** 2 for force in forces.values()) / len(forces)
-    print(f"Force Variance: {force_variance:.6e} N^2")
-    # 2 Variance
-    '''
-
-    ### MAX FORCE ### --------------------------------------------------------
-    max_absolute_force = max(abs(force) for force in forces.values())
-    print(f"max abs Force: {max_absolute_force:.6e} N")
-
     ### WEIGHT ### -----------------------------------------------------------
-    print(all_nodes)
     weight = 0 # weight == total distance
     for connection in all_connections:
         id1, id2 = connection
@@ -151,11 +126,15 @@ def calc_fitness(all_connections, all_nodes):
 
 
     ### CHECK IF FORCE IS EXCERTING LIMIT
-    if max_absolute_force > 10000:
-        return 0, 0, 0, 0
+    ### MAX FORCE ### --------------------------------------------------------                   ### Noch relevant?
+    #max_absolute_force = max(abs(force) for force in forces.values())
+    #print(f"max abs Force: {max_absolute_force:.6e} N")
+    # if max_absolute_force > 10000:
+        #return 0, 0, 0, 0
 
     # pass to pop_manager     #exchanged max_absolute_force with truss_failure_force
     return 0, weight, truss_failure_force, forces.values() #all forces of an individual -> for visualization purposes
+                                        #eigentlich will ich failure_forces visualisieren
 
 
 
