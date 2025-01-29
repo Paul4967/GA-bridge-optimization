@@ -1,11 +1,11 @@
 # weight = euclidean distance of each connection
 # max_load = maximal force exerted on a connection
 
+
 import ga_modules
 import math
 import truss_calculator
 import copy
-
 
 
 
@@ -79,11 +79,13 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
     # Check if any node is connected less than 2 times
     for _, count in connection_count.items():
         if count < 2:
-            return 0, 0, 0, 0 #return fitness of 0
+            print("ERROR 444")
+            return 0, 0, 0 #return fitness of 0
 
     # CHECK IF STABLE
     if ((len(all_nodes) * 2) - len(all_connections)) > 3:
-        return 0, 0, 0, 0 #return fitness of 0
+        print("ERROR 333")
+        return 0, 0, 0 #return fitness of 0
 
     ### ANALYZE TRUSS ### ---------------------------------------------------------------------------------------
     # convert input data
@@ -94,15 +96,18 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
         print(converted_members)
         displacements, forces, stress_strain = truss_calculator.analyze_truss(converted_nodes, converted_members, materials, loads, supports)
     except Exception as e:
+        print("::::::DEBUG:::::: : : :", materials, "\nLOADS", loads, "\nSUPPORTS", supports)
         print(f"Error during truss analysis: {e}")
-        return 0, 0, 0, 0
+        print("ERROR 222")
+        return 0, 0, 0
 
 
     # check for nodal displacement
     displacement_threshold = 1e+1 #10
     for _, displacement in displacements.items():
         if abs(displacement) > displacement_threshold:
-            return 0, 0, 0, 0
+            print("ERROR 111")
+            return 0, 0, 0
 
 
     ### WEIGHT ### -----------------------------------------------------------
@@ -245,3 +250,152 @@ def analyze_truss(all_connections, all_nodes):
     # supports = [Support(1, True, True), Support(5, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
 
     return converted_members, converted_nodes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    ### DEBUG ###
+    import os
+    import sys
+    import json
+
+    project_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+    json_file_path = os.path.join(project_folder, 'input_params.json')
+
+
+
+
+
+    ### TRUSS_CALC_SETUP
+    class Material:
+        def __init__(self, id, E, A):
+            self.id = id
+            self.E = E  # Young's modulus
+            self.A = A  # Cross-sectional area
+
+    class Load:
+        def __init__(self, node_id, fx, fy):
+            self.node_id = node_id
+            self.fx = fx
+            self.fy = fy
+
+    class Support:
+        def __init__(self, node_id, x_support, y_support):
+            self.node_id = node_id
+            self.x_support = x_support
+            self.y_support = y_support
+
+    # Read the JSON file
+    try:
+        with open(json_file_path, 'r') as json_file:
+            INPUT_PARAMS = json.load(json_file)
+            
+            # Declare constants from JSON data
+            BASE_NODES = INPUT_PARAMS.get("base_nodes", "[]")  # Convert JSON string to Python list
+            BASE_CONNECTIONS = INPUT_PARAMS.get("base_connections", "[]")  # Convert JSON string to Python list
+            TOURNAMENT_SIZE = INPUT_PARAMS.get("tournament_size", 0)
+            NUM_SELECTIONS = INPUT_PARAMS.get("num_selections", 0)
+            POPULATION_SIZE = INPUT_PARAMS.get("population_size", 0)
+            GRID_SIZE = INPUT_PARAMS.get("grid_size", 0.0)
+            BUILD_AREA_ = INPUT_PARAMS.get("build_area", "[]")
+            BUILD_AREA = BUILD_AREA_[0] / GRID_SIZE, BUILD_AREA_[1] / GRID_SIZE
+            MIN_NODE_NUM = INPUT_PARAMS.get("min_node_num", 0.0)
+            MAX_NODE_NUM = INPUT_PARAMS.get("max_node_num", 0.0)
+            MAX_GENERATIONS = INPUT_PARAMS.get("max_generations", 0)
+
+            MATERIAL_YIELD_STRENGHT = INPUT_PARAMS.get("material_yield_strenght", 0)
+            MATERIAL_ELASTIC_MODULUS = INPUT_PARAMS.get("material_elastic_modulus", 0)
+            MEMBER_WIDTH = INPUT_PARAMS.get("member_width", 0)
+            # Extract materials from JSON
+            MATERIAL = [
+                Material(m["id"], m["E"], m["A"]) 
+                for m in INPUT_PARAMS.get("material", [])
+            ]
+
+            # Extract loads from JSON
+            LOADS = [
+                Load(l["node_id"], l["fx"], l["fy"])  # Correct way to instantiate a class
+                for l in INPUT_PARAMS.get("loads", [])
+            ]
+
+            # Extract supports from JSON
+            SUPPORTS = [
+                Support(s["node_id"], s["x_support"], s["y_support"])
+                for s in INPUT_PARAMS.get("supports", [])
+            ]
+
+            ## + yield Strenght, E Modul, diameter
+            ## truss_calc: use squared members!
+
+            # materials = [Material(1, 3.6E9, 0.0005625)]  # A = 10^-6 m^2 ? 
+            # loads = [Load(3, 0, -1000)]
+            # supports = [Support(1, True, True), Support(5, False, True)]
+
+    except FileNotFoundError:
+        print(f"Error: {json_file_path} does not exist.")
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+
+
+
+
+
+
+    all_nodes = [
+        [0.0, 0, 0],
+        [40.0, 40, 0],
+        [80.0, 80, 0],
+        [120.0, 120, 0],
+        [160.0, 160, 0],
+        [19.14, 19, 14],
+        [125.29, 125, 29],
+        [70.25, 70, 25]
+    ]
+
+    all_connections = [
+        [0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], 
+        [40.0, 19.14], [40.0, 70.25], [0.0, 19.14], [70.25, 120.0], 
+        [70.25, 80.0], [19.14, 70.25], [160.0, 125.29], [120.0, 125.29], 
+        [70.25, 125.29]
+    ]
+
+
+    weight, truss_failure_force, all_failure_forces = calc_fitness(all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
+
+
+
+
+
+
+
+
+    def end():
+        materials = [Material(1, 3.6E9, 0.0005625)]  # A = 10^-6 m^2 ? 
+        loads = [Load(3, 0, -1000)]
+        supports = [Support(1, True, True), Support(5, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
+
+        print("\nM", materials, "\nL", loads, "\nS", supports)
+
+    end()
+

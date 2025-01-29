@@ -154,6 +154,7 @@ def pareto_local_fitness(population, failure_force, weight): # failure_forces an
 
 def get_individual_to_vis(population, failure_force, weight):
     # get first pareto_line
+    print("POPULATION:", population, "\nFAILURE FORCE: ", failure_force, "\nWEIGHT: ", weight)
     pareto_fronts_ = calc_fitness(population, failure_force, weight)
     first_front = pareto_fronts_[0]
     first_item = first_front[0]
