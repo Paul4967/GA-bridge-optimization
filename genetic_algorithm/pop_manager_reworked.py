@@ -71,12 +71,37 @@ try:
         NUM_SELECTIONS = INPUT_PARAMS.get("num_selections", 0)
         POPULATION_SIZE = INPUT_PARAMS.get("population_size", 0)
         GRID_SIZE = INPUT_PARAMS.get("grid_size", 0.0)
-        MIN_NODE_PERCENTAGE = INPUT_PARAMS.get("min_node_percentage", 0.0)
-        MAX_NODE_PERCENTAGE = INPUT_PARAMS.get("max_node_percentage", 0.0)
+        MIN_NODE_NUM = INPUT_PARAMS.get("min_node_num", 0.0)
+        MAX_NODE_NUM = INPUT_PARAMS.get("max_node_num", 0.0)
         MAX_GENERATIONS = INPUT_PARAMS.get("max_generations", 0)
+
+        MATERIAL_YIELD_STRENGHT = INPUT_PARAMS.get("material_yield_strenght", 0)
+        MATERIAL_ELASTIC_MODULUS = INPUT_PARAMS.get("material_elastic_modulus", 0)
+        MEMBER_WIDTH = INPUT_PARAMS.get("member_width", 0)
+        # Extract materials from JSON
+        MATERIAL = [
+            (m["id"], m["E"], m["A"]) 
+            for m in INPUT_PARAMS.get("material", [])
+        ]
+
+        # Extract loads from JSON
+        LOADS = [
+            (l["node_id"], l["fx"], l["fy"]) 
+            for l in INPUT_PARAMS.get("loads", [])
+        ]
+
+        # Extract supports from JSON
+        SUPPORTS = [
+            (s["node_id"], s["x_support"], s["y_support"])
+            for s in INPUT_PARAMS.get("supports", [])
+        ]
 
         ## + yield Strenght, E Modul, diameter
         ## truss_calc: use squared members!
+
+        # materials = [Material(1, 3.6E9, 0.0005625)]  # A = 10^-6 m^2 ? 
+        # loads = [Load(3, 0, -1000)]
+        # supports = [Support(1, True, True), Support(5, False, True)]
 
 except FileNotFoundError:
     print(f"Error: {json_file_path} does not exist.")
@@ -92,7 +117,7 @@ except json.JSONDecodeError as e:
 
 # Initialize population
     population = [
-        initialization.initialize(BASE_NODES, BASE_CONNECTIONS, MIN_NODE_PERCENTAGE, MAX_NODE_PERCENTAGE, BUILD_AREA)
+        initialization.initialize(BASE_NODES, BASE_CONNECTIONS, MIN_NODE_NUM, MAX_NODE_NUM, BUILD_AREA)
         for _ in range(POPULATION_SIZE)
     ]
 
@@ -119,9 +144,6 @@ for generation in range(MAX_GENERATIONS):
 
 
     ### FITNESS CALCULATION ### -----------------------
-    '''
-    '''
-
     population_post_fitness = []
 
     population_weight = []
@@ -134,22 +156,22 @@ for generation in range(MAX_GENERATIONS):
         all_nodes = BASE_NODES + bridge_nodes
         all_connections = BASE_CONNECTIONS + bridge_connections
 
-        _, weight, truss_failure_force, forces = ftns.calc_fitness(all_connections, all_nodes)#+threshold, ...
+        weight, truss_failure_force, all_failure_forces = ftns.calc_fitness(all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)#+threshold, ...
 
-        population_post_fitness = population_post_mutation #irr
         population_weight.append(weight)
         population_failure_force.append(truss_failure_force)
 
         ### DETERMINE FITNESS ------------------------
         "pareto fitness" #maximize failure_force + pass to matplotlib script
-        population_fitness = ...
+        population_fitness = pareto.pareto_local_fitness(population_post_mutation, population_failure_force, population_weight)
 
-        "display fittest thing" #new pareto script here
+        "display fittest individual" #new pareto script here
         index_vis = pareto.get_individual_to_vis(population_post_mutation, population_failure_force, population_weight)
         bridge_nodes_vis, bridge_connections_vis = population_post_fitness[index_vis]
 
+    population_post_fitness = population_post_mutation #irr
 
-    
+
 
     ### SELECTION ### ----------------------------------
     selected_population = selection.tournament_selection(population_post_fitness, population_fitness, TOURNAMENT_SIZE, NUM_SELECTIONS)
@@ -170,3 +192,7 @@ for generation in range(MAX_GENERATIONS):
 
 
     ###
+
+
+
+    ### FITTEST IND TO JSON ###

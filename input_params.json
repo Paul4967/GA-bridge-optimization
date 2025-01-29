@@ -11,5 +11,29 @@
     "min_node_percentage": 0.001,
     "max_node_percentage": 0.0025,
 
-    "max_generations": 220
+    "max_generations": 220,
+
+
+    "min_node_num": 8,
+    "max_node_num": 16,
+
+    "material_yield_strenght": 1,
+    "material_elastic_modulus": 5,
+    "member_width": 10,
+
+
+    
+    
+    "material": [
+        {"id": 1, "E": 3.6E9, "A": 0.0005625}
+    ],
+    "loads": [
+        {"node_id": 3, "fx": 0, "fy": -1000}
+    ],
+    "supports": [
+        {"node_id": 1, "x_support": true, "y_support": true},
+        {"node_id": 5, "x_support": false, "y_support": true}
+    ]
+    
+  
   }
