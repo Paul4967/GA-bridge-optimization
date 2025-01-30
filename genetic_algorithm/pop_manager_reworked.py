@@ -220,7 +220,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         all_connections = BASE_CONNECTIONS + bridge_connections
 
         weight, truss_failure_force, _ = ftns.calc_fitness(all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
-        # wird immer 0 returnt, probably weil material falsch gepasst wird.
 
         population_weight.append(weight)
         population_failure_force.append(truss_failure_force)
@@ -228,6 +227,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     ### DETERMINE FITNESS ------------------------
     "pareto fitness" #maximize failure_force + pass to matplotlib script
     population_fitness = pareto.pareto_local_fitness(population_post_mutation, population_failure_force, population_weight)
+
 
 
     population_post_fitness = population_post_mutation

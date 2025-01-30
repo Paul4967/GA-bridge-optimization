@@ -8,12 +8,18 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import json
 import os
+from math import log10, floor, isinf, isnan
 
 
 # READ DATA
-file_path = 'evolution_data.json'
-with open(file_path, 'r') as f:
-        data = json.load(f)
+file_path = os.path.join(os.path.dirname(__file__), "evolution_data.json")
+try:
+    with open(file_path, 'r') as f:
+            data = json.load(f)
+except FileNotFoundError:
+    print(f"Error: {file_path} does not exist.")
+except json.JSONDecodeError as e:
+    print(f"Error decoding JSON: {e}")
 
 # Create a custom colormap with white at zero
 colors = [
@@ -45,7 +51,8 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, max_force_displa
     # Create a normalization where zero is exactly in the center
     #norm = TwoSlopeNorm(vmin=min(forces), vcenter=0, vmax=max(forces))
     print("TSN", min_force, vcenter, max_force)
-    norm = TwoSlopeNorm(vmin=min_force, vcenter=vcenter, vmax=max_force)
+    # norm = TwoSlopeNorm(vmin=min_force, vcenter=vcenter, vmax=max_force)
+    norm = TwoSlopeNorm(vmin=-5, vcenter=0, vmax=5)
     
     # Mapping node IDs to index positions in the nodes array
     id_to_index = {node[0]: idx for idx, node in enumerate(nodes)}
@@ -67,9 +74,20 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, max_force_displa
             ax.plot(x_coords, y_coords, color=color, linewidth=2, zorder=2)
             
             # Add force label at the midpoint of the connection
+            def format_force(f):
+                if isnan(f) or isinf(f):  
+                    return "inf" if f > 0 else "-inf"  # Handle infinite values
+                if f == 0:
+                    return "0"
+                exponent = floor(log10(abs(f)))
+                base = f / (10 ** exponent)
+                return f"{base:.1f}e{exponent}" if exponent != 0 else f"{base:.1f}"
+
+            # Add force label at the midpoint of the connection
             mid_x = (x_coords[0] + x_coords[1]) / 2
             mid_y = (y_coords[0] + y_coords[1]) / 2
-            ax.text(mid_x, mid_y, f"{forces[i]:.1f}", color='black', 
+            formatted_force = format_force(forces[i])
+            ax.text(mid_x, mid_y, formatted_force, color='black', 
                     fontsize=10, ha='center', va='center', zorder=10,
                     bbox=dict(facecolor='white', edgecolor='none', alpha=0.7, pad=1))
     

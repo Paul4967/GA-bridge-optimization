@@ -25,8 +25,8 @@ def pareto_fronts(individuals):
                 _, other_failure_force, other_weight = other
 
                 # check if individual is being dominated by 'other'
-                if all(o <= i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))) and \
-                    any(o < i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))):
+                if all(o >= i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))) and \
+                    any(o > i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))):
                         is_dominated = True
                         break
             if not is_dominated:
@@ -223,7 +223,7 @@ population = [
 # Failure force values (objective to maximize)
 failure_force = [
     15,  # High failure force
-    20,  # Higher failure force
+    21,  # Higher failure force
     5,   # Low failure force
     25,  # Very high failure force
     10,  # Moderate failure force
@@ -243,6 +243,9 @@ weight = [
 ]
 
 
-results = pareto_local_fitness(population, failure_force, weight)
+results = pareto_local_fitness(population, failure_force, weight) #fforce, weight
 for result in results:
     print("FITNESS:", result)
+
+### fehler weil failure_force in selction negativ sein kann? -> kann eigentloich nicht!
+# failure_force und weight irgendwo vertauscht!!
