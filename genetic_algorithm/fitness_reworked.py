@@ -9,6 +9,54 @@ import copy
 
 
 
+def calc_all_failure_forces(all_connections, forces, all_nodes, grid_size, material_yield_strenght, material_elastic_modulus, width):
+    
+    APPLIED_FORCE = 1000 #1kN
+
+    CA = width ** 2 #cross-sectional area
+    I = (width * (width ** 3)) / 12 #Moment of inertia
+    K = 1.0 #Effective lenght factor (1.0 for pinned pinned)
+
+    failure_forces = []
+    
+    for connection, force in zip(all_connections, forces.values()):
+
+        if force > 0:
+            # calc yield_force
+            yield_force = material_yield_strenght * CA
+            failure_forces.append(yield_force)
+
+        elif force < 0:
+            id1, id2 = connection
+            x1, y1 = ga_modules.get_coords(id1, all_nodes)
+            x2, y2 = ga_modules.get_coords(id2, all_nodes)
+            # calculate distance
+            lenght = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2)) * grid_size ####"""EXTREMELY IMPORTANT"""
+
+            buckling_force = (math.pi**2 * material_elastic_modulus * I) / ((K * lenght)**2)
+            failure_forces.append(buckling_force)
+
+        else:
+            failure_forces.append(0)
+
+    failing_applied_forces = []
+    for member_force, failure_force in zip(forces.values(), failure_forces):
+        if member_force != 0:
+            failing_applied_forces.append(failure_force / (member_force / APPLIED_FORCE)) #"""REMOVED ABS"""
+        else:
+            failing_applied_forces.append(float("inf"))
+    
+    # min_failure_force = min(failing_applied_forces)
+
+    return failing_applied_forces # max force that can be applied before one of the members is failing
+
+
+
+
+
+
+
+
 
 def calc_truss_failure_force(all_connections, forces, all_nodes, grid_size, material_yield_strenght, material_elastic_modulus, width):
     
@@ -48,7 +96,7 @@ def calc_truss_failure_force(all_connections, forces, all_nodes, grid_size, mate
     failing_applied_forces = []
     for member_force, failure_force in zip(forces.values(), failure_forces):
         if member_force != 0:
-            failing_applied_forces.append(abs(failure_force / (member_force / APPLIED_FORCE)))
+            failing_applied_forces.append(abs(failure_force / (member_force / APPLIED_FORCE))) #"""REMOVED ABS"""
         else:
             failing_applied_forces.append(float("inf"))
     
@@ -136,8 +184,11 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
     # if max_absolute_force > 10000:
         #return 0, 0, 0, 0
 
+
+    all_failure_forces = calc_all_failure_forces(all_connections, forces, all_nodes, grid_size, material_yield_strenght, material_elastic_modulus, width)
+
     # pass to pop_manager
-    return weight, truss_failure_force, truss_failure_forces 
+    return weight, truss_failure_force, all_failure_forces
 
 
 

@@ -54,7 +54,7 @@ def crowding_distance(front):
     # Calculate crowding distance for failure_force
     distances[0] = distances[-1] = float('inf')  # Boundary individuals have infinite crowding distance
     for i in range(1, num_individuals - 1):
-        if front_sorted_by_failure_force[-1][1] - front_sorted_by_failure_force[0][1] == 0: ############ IF ALL VALUES ARE THE SAME
+        if (front_sorted_by_failure_force[-1][1] - front_sorted_by_failure_force[0][1] == 0) or (front_sorted_by_failure_force[-1][1] - front_sorted_by_failure_force[0][1] == 0):
             distances[i] += 0
             continue
 
@@ -68,7 +68,7 @@ def crowding_distance(front):
     
     # Calculate crowding distance for weight
     for i in range(1, num_individuals - 1):
-        if front_sorted_by_weight[-1][1] - front_sorted_by_weight[0][1] == 0:
+        if (front_sorted_by_weight[-1][1] - front_sorted_by_weight[0][1] == 0) or (front_sorted_by_weight[-1][2] - front_sorted_by_weight[0][2] == 0):
             distances[i] += 0
             continue
 

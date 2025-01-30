@@ -38,7 +38,7 @@ if not os.path.exists(data_folder):
 
 # Define the full file paths for saving the data
 file_path = os.path.join(data_folder, 'evolution_data.json')
-file_path_termination = os.path.join(data_folder, 'final_individuals.json')
+file_path_termination = os.path.join(data_folder, 'final_solutions.json')
 
 # Initialize existing data lists
 existing_data = []
@@ -180,8 +180,8 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
         min_mutation_amplifier = 1
         max_mutation_amplifier = 1
-        mutate_node_probability = 0.4 # or lower?
-        mutate_connection_probability = 0.4
+        mutate_node_probability = 0.5 # or lower?
+        mutate_connection_probability = 0.5
         max_node_offset_multiplier = 1
         # Perform mutation with fresh variables
         bridge_connections_, bridge_nodes_ = mutation.mutate(
@@ -222,7 +222,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         weight, truss_failure_force, _ = ftns.calc_fitness(all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
 
         population_weight.append(weight)
-        population_failure_force.append(truss_failure_force)
+        population_failure_force.append(abs(truss_failure_force))
 
     ### DETERMINE FITNESS ------------------------
     "pareto fitness" #maximize failure_force + pass to matplotlib script
@@ -273,12 +273,14 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     all_failure_forces = [float(f) for f in all_failure_forces]
     weight_vis = ga_modules.calc_weight(all_connections_vis, all_nodes_vis)
     print("ALL_FAILURE_F", all_failure_forces)
+
+
     data = {
         "step": i,
         "all_connections": all_connections_vis,
         "all_nodes": all_nodes_vis,
         "failure_forces": all_failure_forces,
-        "min_failure_force": max([abs(failure_force) for failure_force in all_failure_forces]),
+        "min_failure_force": min([abs(failure_force) for failure_force in all_failure_forces]),
         "weight": weight_vis
     }
 
@@ -301,6 +303,46 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
 ### END ### -----------------------------------------------------------
 writer.close()
+
+
+
+### SAVE FINAL PARETO FRONT ###
+step = 0
+for i, individual in enumerate(population_post_fitness):
+    if population_fitness[i] >= 0.1:
+        bridge_nodes_front, bridge_connections_front = individual
+        all_connections_front = BASE_CONNECTIONS + bridge_connections_front
+        all_nodes_front = BASE_NODES + bridge_nodes_front
+        step += 1
+
+        _, _, all_failure_forces = ftns.calc_fitness(all_connections_front, all_nodes_front, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
+        all_failure_forces = [float(f) for f in all_failure_forces]
+        weight_front = ga_modules.calc_weight(all_connections_front, all_nodes_front)
+
+        # add to json
+        data = {
+        "step": i,
+        "all_connections": all_connections_front,
+        "all_nodes": all_nodes_front,
+        "failure_forces": all_failure_forces,
+        "min_failure_force": min([abs(failure_force) for failure_force in all_failure_forces]),
+        "weight": weight_front
+        }
+
+        # Load existing data
+        if os.stat(file_path_termination).st_size == 0:
+            print("The file is empty!")
+        else:
+            with open(file_path_termination, 'r') as f:
+                existing_data_termination = json.load(f)
+
+        # Append new data
+        existing_data_termination.append(data)
+
+        # Save the updated data back to the file
+        with open(file_path_termination, 'w') as f:
+            # json.dump(existing_data, f, indent=4)
+            json.dump(existing_data_termination, f)
 
 
 

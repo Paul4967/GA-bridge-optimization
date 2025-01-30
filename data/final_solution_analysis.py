@@ -12,7 +12,7 @@ from math import log10, floor, isinf, isnan
 
 
 # READ DATA
-file_path = os.path.join(os.path.dirname(__file__), "evolution_data.json")
+file_path = os.path.join(os.path.dirname(__file__), "final_solutions.json")
 try:
     with open(file_path, 'r') as f:
             data = json.load(f)
