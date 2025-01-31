@@ -102,8 +102,8 @@ try:
         MEMBER_WIDTH = INPUT_PARAMS.get("member_width", 0)
         # Extract materials from JSON
         MATERIAL = [
-            Material(m["id"], m["E"], m["A"]) 
-            for m in INPUT_PARAMS.get("material", [])
+            Material(m["id"], m["E"], m["A"] / GRID_SIZE**2)
+            for m in INPUT_PARAMS.get("material", []) #Divide A by GRID_SIZE^2
         ]
 
         # Extract loads from JSON
@@ -321,7 +321,7 @@ for i, individual in enumerate(population_post_fitness):
 
         # add to json
         data = {
-        "step": i,
+        "step": step,
         "all_connections": all_connections_front,
         "all_nodes": all_nodes_front,
         "failure_forces": all_failure_forces,

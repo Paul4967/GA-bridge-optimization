@@ -109,7 +109,7 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
     ax.grid(True)
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
-    ax.set_title(f'weight: {weight:.2f}    max_force: {abs(failure_force):.2f}N')
+    ax.set_title(f'weight: {weight:.2f}    failure_force: {abs(failure_force):.2f}N')
 
     # Create custom legend entries for force and compression
     neutral_patch = mpatches.Patch(color=custom_cmap(norm(0)), label='None (Neutral Force)', linewidth=2)
@@ -123,7 +123,7 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
     sm = plt.cm.ScalarMappable(cmap=custom_cmap, norm=norm)
     sm.set_array([])  # Set an empty array to avoid errors
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label('Force in N')
+    cbar.set_label('failure force in N', fontsize=12)
 
     return fig, ax
 
