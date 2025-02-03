@@ -104,7 +104,13 @@ def calc_fitness(population, failure_force, weight):
             else:
                 cd_distance = crowding_distance_values[i]
 
+
+            
             local_fitness = 1 / ((front_index * 10) - cd_distance) # the hihger, the better
+
+
+
+            # local_fitness = (1 / (front_index * 10)) * cd_distance + 0.1 ###OTHER WAY TO IDENTIFY FIRST FRONT IN POP_MANAGER!!!
             # front[i].append(local_fitness)
             front_list.append(local_fitness) # FIX
             front[i] = tuple(front_list)  # Convert back to tuple after appending
@@ -217,7 +223,8 @@ population = [
     [7, 8],  # Example individual 4
     [9, 10], # Example individual 5
     [11, 12],# Example individual 6
-    [13, 14] # Example individual 7
+    [13, 14],
+    [2,3] # Example individual 7
 ]
 
 # Failure force values (objective to maximize)
@@ -228,7 +235,7 @@ failure_force = [
     25,  # Very high failure force
     10,  # Moderate failure force
     8,   # Low failure force
-    18   # High failure force
+    10.001   # High failure force
 ]
 
 # Weight values (objective to minimize)
@@ -239,7 +246,7 @@ weight = [
     8,   # Moderate weight
     12,  # High weight
     3,   # Very low weight
-    15    # Moderate weight
+    12.001    # Moderate weight
 ]
 
 

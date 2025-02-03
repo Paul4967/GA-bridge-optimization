@@ -10,7 +10,8 @@ sys.path.append(project_folder)
 import json
 import math
 import initialization_reworked as initialization
-import mutation_reworked as mutation
+#import mutation_reworked as mutation
+import m_r as mutation
 import time
 import copy
 import crossover
@@ -39,9 +40,11 @@ if not os.path.exists(data_folder):
 # Define the full file paths for saving the data
 file_path = os.path.join(data_folder, 'evolution_data.json')
 file_path_termination = os.path.join(data_folder, 'final_solutions.json')
+file_pareto_path = os.path.join(data_folder, "first_pareto_fronts.json")
 
 # Initialize existing data lists
 existing_data = []
+existing_pareto_data = []
 existing_data_termination = []
 
 
@@ -178,7 +181,10 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         all_connections = copy.deepcopy(BASE_CONNECTIONS + bridge_connections)
         all_nodes = copy.deepcopy(BASE_NODES + bridge_nodes)
 
-        min_mutation_amplifier = 1
+        mutation_rate = 0.35
+        min_mutation_amplifier = mutation_rate
+
+        # min_mutation_amplifier = 1
         max_mutation_amplifier = 1
         mutate_node_probability = 0.5 # or lower?
         mutate_connection_probability = 0.5
@@ -298,6 +304,53 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     with open(file_path, 'w') as f:
         # json.dump(existing_data, f, indent=4)
         json.dump(existing_data, f)
+
+
+
+    # Save 1. Pareto Front to json
+    # use step
+    front_weight = []
+    front_failure_force = []
+    pareto_front = []
+    for i, individual in enumerate(population_post_fitness):
+        if population_fitness[i] >= 0.1:
+            bridge_nodes_front, bridge_connections_front = individual
+            all_connections_front = BASE_CONNECTIONS + bridge_connections_front
+            all_nodes_front = BASE_NODES + bridge_nodes_front
+            weight, failure_force, _ = ftns.calc_fitness(all_connections_front, all_nodes_front, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
+
+            pareto_front.append([weight, failure_force])
+        
+    # sort by weight
+    pareto_front.sort(key=lambda x: x[0])
+
+    # save to json ### ---------------------
+    pareto_data = {
+        "step": step,
+        "pareto_front": pareto_front,
+    }
+
+    # Load existing data
+    if os.stat(file_pareto_path).st_size == 0:
+        print("The file is empty!")
+    else:
+        with open(file_pareto_path, 'r') as f:
+            existing_pareto_data = json.load(f)
+
+    # Append new data
+    existing_pareto_data.append(pareto_data)
+
+    # Save the updated data back to the file
+    with open(file_pareto_path, 'w') as f:
+        # json.dump(existing_data, f, indent=4)
+        json.dump(existing_pareto_data, f)
+
+
+
+    # stop evolution if pareto front is 5 times the same
+
+
+
 
 
 

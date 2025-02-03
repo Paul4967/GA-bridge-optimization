@@ -19,3 +19,5 @@ def tournament_selection(population, fitnesses, k, num_selections): # k = tourna
 
 
 
+
+
