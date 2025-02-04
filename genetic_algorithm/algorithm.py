@@ -221,7 +221,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     ### Create offspring (using tournament selection)
     population_PT_offspring = selection.crowded_tournament_selection(population_PT, population_PT_fitness, TOURNAMENT_SIZE, POPULATION_SIZE / 4)
 
-
+    "set worst 50% to be offspring population?"
 
 
 

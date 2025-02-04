@@ -53,8 +53,10 @@ def select_PT(population_RT, population_RT_fitness, POPULATION_SIZE):
 
 def crowded_tournament_selection(population, fitnesses, k, num_selections): # k = tournament size
     selected = []
-    for _ in range(int(num_selections)):
-        tournament = random.sample(range(len(population)), k)
+    selected_indices = set()  # Track already selected individuals
+    while len(selected) < num_selections and len(selected_indices) < len(population):
+        tournament = random.sample([i for i in range(len(population)) if i not in selected_indices], k)
         winner = max(tournament, key=lambda i: fitnesses[i])
         selected.append(population[winner])
+        selected_indices.add(winner)  # Prevent re-selection
     return selected

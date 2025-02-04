@@ -1,18 +1,18 @@
 {
-    "base_nodes": [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0]],
-    "base_connections": [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0]],
+    "base_nodes": [[0.0, 0, 0], [40.0, 40, 0], [80.0, 80, 0], [120.0, 120, 0], [160.0, 160, 0], [200.0, 200, 0], [240.0, 240, 0]],
+    "base_connections": [[0.0, 40.0], [40.0, 80.0], [80.0, 120.0], [120.0, 160.0], [160.0, 200.0], [200.0, 240.0]],
 
     "tournament_size": 2,
     "num_selections": 50,
-    "population_size": 192,
+    "population_size": 128,
 
     "grid_size": 0.1,
-    "build_area": [16, 5],
+    "build_area": [24, 7],
 
     "min_node_percentage": 0.001,
     "max_node_percentage": 0.0025,
 
-    "max_generations": 40,
+    "max_generations": 220,
 
 
     "min_node_num": 8,
@@ -29,11 +29,11 @@
         {"id": 1, "E": 3.6E9, "A": 0.25}
     ],
     "loads": [
-        {"node_id": 3, "fx": 0, "fy": -1000}
+        {"node_id": 4, "fx": 0, "fy": -1000}
     ],
     "supports": [
         {"node_id": 1, "x_support": true, "y_support": true},
-        {"node_id": 5, "x_support": false, "y_support": true}
+        {"node_id": 7, "x_support": false, "y_support": true}
     ]
     
   
