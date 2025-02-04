@@ -201,17 +201,10 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         all_nodes = copy.deepcopy(BASE_NODES + bridge_nodes)
 
         mutation_rate = 0.2
-        min_mutation_amplifier = mutation_rate
-
-        # min_mutation_amplifier = 1
-        max_mutation_amplifier = 1
-        mutate_node_probability = 0.5 # or lower?
-        mutate_connection_probability = 0.5
         max_node_offset_multiplier = 1
         # Perform mutation with fresh variables
         bridge_connections_, bridge_nodes_ = mutation.mutate(
-            mutate_node_probability,
-            mutate_connection_probability,
+            mutation_rate,
             max_node_offset_multiplier,
             GRID_SIZE,
             BUILD_AREA,
@@ -219,8 +212,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
             copy.deepcopy(BASE_NODES),  # Ensure base_nodes are isolated
             bridge_connections_copy,
             copy.deepcopy(BASE_CONNECTIONS),  # Ensure base_connections are isolated
-            max_mutation_amplifier,
-            min_mutation_amplifier,
             all_connections,
             all_nodes
         )
@@ -267,6 +258,11 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     ### SELECTION ### ----------------------------------
     selected_population = selection.tournament_selection(population_post_fitness, population_fitness, TOURNAMENT_SIZE, NUM_SELECTIONS)
     population = selected_population
+
+
+
+
+
 
 
 

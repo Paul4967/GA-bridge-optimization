@@ -10,6 +10,18 @@ def pareto_fronts(individuals):
     individuals = [individual for individual in individuals if individual[1] != 0 and individual[2] != 0]
     individuals = [individual for individual in individuals if not math.isnan(individual[1]) and not math.isnan(individual[2])] # FILTER NaN
 
+    # logic for deleting duplicates
+    seen = set()
+    filtered_individuals = []
+
+    for index, failure_force, weight in individuals:
+        key = (failure_force, weight)
+        if key not in seen:
+            seen.add(key)
+            filtered_individuals.append((index, failure_force, weight))
+    individuals = filtered_individuals
+
+
     ### START MAIN PROCESS ### --------------------
     fronts = []
     while individuals: # individuals list is not empty

@@ -6,7 +6,7 @@
 # or 1 tournament and select e.g. 50 best percent
 
 import random
-
+import numpy as np
 
 
 def tournament_selection(population, fitnesses, k, num_selections): # k = tournament size
@@ -34,4 +34,27 @@ def tournament_selection(population, fitnesses, k, num_selections):
 """
 
 
+def select_PT(population_RT, population_RT_fitness, POPULATION_SIZE):
+    # Sort indices based on fitness in ascending order
+    sorted_indices = np.argsort(population_RT_fitness)
 
+    # Select the top half with the greatest fitness
+    top_half_indices = sorted_indices[-(POPULATION_SIZE // 2):]
+
+    # Get the corresponding individuals and their fitness values
+    population_PT = [population_RT[i] for i in top_half_indices]
+    population_PT_fitness = [population_RT_fitness[i] for i in top_half_indices]
+
+
+    return population_PT, population_PT_fitness
+
+
+
+
+def crowded_tournament_selection(population, fitnesses, k, num_selections): # k = tournament size
+    selected = []
+    for _ in range(int(num_selections)):
+        tournament = random.sample(range(len(population)), k)
+        winner = max(tournament, key=lambda i: fitnesses[i])
+        selected.append(population[winner])
+    return selected

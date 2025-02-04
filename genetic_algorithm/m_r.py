@@ -267,8 +267,8 @@ def create_node(build_area, all_nodes, all_connections, base_connections, bridge
 
 
 
-def mutate(mutate_node_probability, mutate_connection_probability, max_node_offset_multiplier, grid_size, build_area, 
-           bridge_nodes, base_nodes, bridge_connections, base_connections, max_mutation_amplifier, min_mutation_amplifier, all_connections, all_nodes):
+def mutate(mutation_rate, max_node_offset_multiplier, grid_size, build_area, 
+           bridge_nodes, base_nodes, bridge_connections, base_connections, all_connections, all_nodes):
     # amplifier: how many times can a node be deleted for example
     # all_connections = base_connections + bridge_connections
     # all_nodes = base_nodes + bridge_nodes
@@ -276,7 +276,6 @@ def mutate(mutate_node_probability, mutate_connection_probability, max_node_offs
     
 
     
-    mutation_rate = min_mutation_amplifier
     for connection in bridge_connections:
         if random.random() < mutation_rate:
             random_int = random.randint(1,2)
