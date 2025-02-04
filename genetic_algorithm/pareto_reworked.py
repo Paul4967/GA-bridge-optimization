@@ -30,11 +30,16 @@ def pareto_fronts(individuals):
                         is_dominated = True
                         break
             if not is_dominated:
-                non_dominated.append(individual)
+                non_dominated.append(individual) #if individual has same values as other, it will be asigned to a new front -> thats a problem
+                                                # because it will only be dominated if another individual has 1 better value.
      
         # Remove the current front individuals from the list
         individuals = [individual for individual in individuals if individual not in non_dominated]
         fronts.insert(0, non_dominated)
+
+
+        # SAVE ALL FRONTS TO JSON TO PLOT IN MATPLOTLIB
+
     return fronts
 
 

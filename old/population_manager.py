@@ -87,7 +87,7 @@ print("POPULATION: ", population)
 
 
 i  = 0
-while i < 250:
+while i < 60:
     ### CROSSOVER ### 
     'PERFORM 2 Times for each pair!!!'
     # split population into pairs

@@ -141,11 +141,30 @@ except json.JSONDecodeError as e:
 ### EVOLUTION ### --------------------------------------------------
 
 # Initialize population
-population = [
-    initialization.initialize(BASE_NODES, BASE_CONNECTIONS, MIN_NODE_NUM, MAX_NODE_NUM, BUILD_AREA)
-    for _ in range(POPULATION_SIZE)
-]
+population = []
+a = 0
+while len(population) < (POPULATION_SIZE / 2):
+    ind = initialization.initialize(BASE_NODES, BASE_CONNECTIONS, MIN_NODE_NUM, MAX_NODE_NUM, BUILD_AREA)
 
+    all_connections = BASE_CONNECTIONS + ind[1]
+    all_nodes = BASE_NODES + ind[0]
+
+    weight, truss_failure_force, _ = ftns.calc_fitness(
+        all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, 
+        MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH
+    )
+
+    if weight != 0 and truss_failure_force != 0:
+        a +=1
+        population.append(ind)  # Only add valid individuals
+        print("D E B U G: ", weight, truss_failure_force)
+
+print("D E B U G:::: ", a)
+time.sleep(10)
+
+
+
+### START ### ------------------------
 
 for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
@@ -181,7 +200,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         all_connections = copy.deepcopy(BASE_CONNECTIONS + bridge_connections)
         all_nodes = copy.deepcopy(BASE_NODES + bridge_nodes)
 
-        mutation_rate = 0.35
+        mutation_rate = 0.2
         min_mutation_amplifier = mutation_rate
 
         # min_mutation_amplifier = 1
@@ -226,9 +245,10 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         all_connections = BASE_CONNECTIONS + bridge_connections
 
         weight, truss_failure_force, _ = ftns.calc_fitness(all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
-
+        
         population_weight.append(weight)
         population_failure_force.append(abs(truss_failure_force))
+
 
     ### DETERMINE FITNESS ------------------------
     "pareto fitness" #maximize failure_force + pass to matplotlib script

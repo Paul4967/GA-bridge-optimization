@@ -115,6 +115,7 @@ def calc_truss_failure_force(all_connections, forces, all_nodes, grid_size, mate
 
 def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght, material_elastic_modulus, materials, loads, supports, width): #+ DISPLACEMENT_THRESHOLD AND max_force_ratio??
 
+    
     # Create a dictionary to track the connections for each node
     connection_count = {node[0]: 0 for node in all_nodes}
     # Iterate through each connection and update the connection count
@@ -124,6 +125,8 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
             connection_count[id1] += 1
         if id2 in connection_count:
             connection_count[id2] += 1
+
+    
     # Check if any node is connected less than 2 times
     for _, count in connection_count.items():
         if count < 2:
@@ -134,6 +137,7 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
     if ((len(all_nodes) * 2) - len(all_connections)) > 3:
         print("ERROR 333")
         return 0, 0, 0 #return fitness of 0
+    
 
     ### ANALYZE TRUSS ### ---------------------------------------------------------------------------------------
     # convert input data
@@ -157,6 +161,11 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
             print("ERROR 111")
             return 0, 0, 0
 
+    
+    truss_failure_forces, truss_failure_force = calc_truss_failure_force(all_connections, forces, all_nodes, grid_size, material_yield_strenght, material_elastic_modulus, width)
+    "CALC FAILURE_FORCE AS WELL"
+
+
 
     ### WEIGHT ### -----------------------------------------------------------
     weight = 0 # weight == total distance
@@ -169,14 +178,7 @@ def calc_fitness(all_connections, all_nodes, grid_size, material_yield_strenght,
         # calculate distance
         distance = math.sqrt(((x2 - x1)**2) + ((y2 - y1)**2))
         weight += distance
-
-
     
-    
-    truss_failure_forces, truss_failure_force = calc_truss_failure_force(all_connections, forces, all_nodes, grid_size, material_yield_strenght, material_elastic_modulus, width)
-    "CALC FAILURE_FORCE AS WELL"
-
-
     ### CHECK IF FORCE IS EXCERTING LIMIT
     ### MAX FORCE ### --------------------------------------------------------                   ### Noch relevant?
     #max_absolute_force = max(abs(force) for force in forces.values())

@@ -19,5 +19,19 @@ def tournament_selection(population, fitnesses, k, num_selections): # k = tourna
 
 
 
+"""
+def tournament_selection(population, fitnesses, k, num_selections):
+    selected = []
+    selected_indices = set()  # Track already selected individuals
+
+    while len(selected) < num_selections and len(selected_indices) < len(population):
+        tournament = random.sample([i for i in range(len(population)) if i not in selected_indices], k)
+        winner = max(tournament, key=lambda i: fitnesses[i])
+        selected.append(population[winner])
+        selected_indices.add(winner)  # Prevent re-selection
+
+    return selected
+"""
+
 
 
