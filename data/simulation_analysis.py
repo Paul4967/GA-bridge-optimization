@@ -99,14 +99,19 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
         # ax.text(node[1] + 0.1, node[2] + 0.1, f"({node[1]:.1f}, {node[2]:.1f})", 
             # fontsize=7, zorder=10)
     
-    ax.set_xlim(-1, 17)
-    ax.set_ylim(-1, 8)
+    ax.set_xlim(-1, 25)
+    ax.set_ylim(-1, 11)
 
     # Ensure equal scaling of both axes
     ax.set_aspect('equal', adjustable='box')
     
     # Adding grid and labels
     ax.grid(True)
+
+    # Set the grid ticks to 1 by 1
+    ax.set_xticks(range(-1, 26, 1))  # Grid markings on x-axis from -1 to 25 with a step of 1
+    ax.set_yticks(range(-1, 12, 1))  # Grid markings on y-axis from -1 to 11 with a step of 1
+
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
     ax.set_title(f'weight: {weight:.2f}    failure_force: {abs(failure_force):.2f}N')
