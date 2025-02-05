@@ -1,7 +1,13 @@
 
 import numpy as np
 import math
+import json
+import os
+import sys
 
+project_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+data_folder = os.path.join(project_folder, 'data')
+file_path = os.path.join(data_folder, 'pareto_fronts.json')
 # population: bridge_nodes, bridge_connections
 
 def pareto_fronts(individuals):
@@ -51,6 +57,42 @@ def pareto_fronts(individuals):
 
 
         # SAVE ALL FRONTS TO JSON TO PLOT IN MATPLOTLIB
+        # individual format: _, failure_force, weight
+    formatted_fronts = [
+        [[ind[1], ind[2]] for ind in front] for front in fronts
+    ]
+
+    # Save to JSON
+    # File path
+    json_file = file_path
+
+    # Load existing data if file exists
+    # Load existing data if file exists
+    if os.path.exists(json_file):
+        with open(json_file, "r") as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                data = {}  # If file is empty or corrupted, start fresh
+    else:
+        data = {}
+
+    # Ensure data structure is a dictionary
+    if not isinstance(data, dict):
+        data = {}
+
+    # Determine the next entry index
+    existing_entries = [int(k) for k in data.keys()] if data else []
+    next_entry = max(existing_entries, default=-1) + 1  # Get next entry number
+
+    # Save the new collection under a new entry key
+    data[str(next_entry)] = formatted_fronts
+
+    # Save back to JSON
+    with open(json_file, "w") as f:
+        json.dump(data, f, indent=4)
+
+
 
     return fronts
 
