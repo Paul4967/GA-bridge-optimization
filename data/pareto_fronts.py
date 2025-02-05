@@ -6,6 +6,7 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.cm as cm  # For colormap
+import math
 
 file_path = os.path.join(os.path.dirname(__file__), "pareto_fronts.json")
 
@@ -26,7 +27,7 @@ def plot_pareto(step):
     ax.clear()
     ax.set_xlabel("Failure Force")
     ax.set_ylabel("Weight")
-    ax.set_title(f"Pareto Fronts - Population at Step {step}")
+    ax.set_title(f"Pareto Fronts - Population at Step {math.ceil(step / 2)}")
 
     # Use the 'magma' colormap
     colormap = cm.magma  # Magma colormap
@@ -52,7 +53,7 @@ root = tk.Tk()
 root.title("Pareto Front Viewer")
 
 # Create a Matplotlib figure
-fig, ax = plt.subplots(figsize=(6, 4))
+fig, ax = plt.subplots(figsize=(10, 8))
 canvas = FigureCanvasTkAgg(fig, master=root)
 canvas.get_tk_widget().pack()
 
