@@ -100,6 +100,7 @@ try:
         MIN_NODE_NUM = INPUT_PARAMS.get("min_node_num", 0.0)
         MAX_NODE_NUM = INPUT_PARAMS.get("max_node_num", 0.0)
         MAX_GENERATIONS = INPUT_PARAMS.get("max_generations", 0)
+        MUTATION_RATE = INPUT_PARAMS.get("mutation_rate", 0.0)
 
         MATERIAL_YIELD_STRENGHT = INPUT_PARAMS.get("material_yield_strenght", 0)
         MATERIAL_ELASTIC_MODULUS = INPUT_PARAMS.get("material_elastic_modulus", 0)
@@ -270,11 +271,11 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
             all_connections = copy.deepcopy(BASE_CONNECTIONS + bridge_connections)
             all_nodes = copy.deepcopy(BASE_NODES + bridge_nodes)
 
-            mutation_rate = 0.2
+            # mutation_rate = 0.2
             max_node_offset_multiplier = 1
             # Perform mutation with fresh variables
             bridge_connections_, bridge_nodes_ = mutation.mutate(
-                mutation_rate,
+                MUTATION_RATE,
                 max_node_offset_multiplier,
                 GRID_SIZE,
                 BUILD_AREA,

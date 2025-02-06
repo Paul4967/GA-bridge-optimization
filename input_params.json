@@ -12,7 +12,7 @@
     "min_node_percentage": 0.001,
     "max_node_percentage": 0.0025,
 
-    "max_generations": 320,
+    "max_generations": 120,
 
 
     "min_node_num": 6,
@@ -22,7 +22,7 @@
     "material_elastic_modulus": 3.027e9,
     "member_width": 0.4,
 
-
+    "mutation_rate": 0.32,
     
     
     "material": [
