@@ -16,6 +16,7 @@ def pareto_fronts(individuals):
     individuals = [individual for individual in individuals if individual[1] != 0 and individual[2] != 0]
     individuals = [individual for individual in individuals if not math.isnan(individual[1]) and not math.isnan(individual[2])] # FILTER NaN
 
+    
     # logic for deleting duplicates
     seen = set()
     filtered_individuals = []
@@ -26,13 +27,14 @@ def pareto_fronts(individuals):
             seen.add(key)
             filtered_individuals.append((index, failure_force, weight))
     individuals = filtered_individuals
-
+    
 
     ### START MAIN PROCESS ### --------------------
     fronts = []
     while individuals: # individuals list is not empty
         non_dominated = []  # Collect non-dominated individuals
 
+        # check for any individual if it is dominated by any other individual -> repeat for each front
         for individual in individuals:
             is_dominated = False
             for other in individuals:
@@ -42,22 +44,21 @@ def pareto_fronts(individuals):
                 _, individual_failure_force, individual_weight = individual
                 _, other_failure_force, other_weight = other
 
-                # check if individual is being dominated by 'other'
-                if all(o >= i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))) and \
-                    any(o > i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))):
+                # check if individual is being dominated by 'other' #o = 1/1+other_failure_force, other_weigth    #i for individuals
+                if all(o <= i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))) and \
+                    any(o < i for o, i in zip((1/(1+other_failure_force), other_weight), (1/(1+individual_failure_force), individual_weight))):
                         is_dominated = True
                         break
             if not is_dominated:
-                non_dominated.append(individual) #if individual has same values as other, it will be asigned to a new front -> thats a problem
-                                                # because it will only be dominated if another individual has 1 better value.
+                non_dominated.append(individual)
      
         # Remove the current front individuals from the list
         individuals = [individual for individual in individuals if individual not in non_dominated]
-        fronts.insert(0, non_dominated)
+        fronts.append(non_dominated)
 
 
-        # SAVE ALL FRONTS TO JSON TO PLOT IN MATPLOTLIB
-        # individual format: _, failure_force, weight
+    # SAVE ALL FRONTS TO JSON TO PLOT IN MATPLOTLIB
+    # individual format: _, failure_force, weight
     formatted_fronts = [
         [[ind[1], ind[2]] for ind in front] for front in fronts
     ]
@@ -273,7 +274,7 @@ print("PARETO FRONTS: ", calc_fitness(population, failure_force, weight))
 ### DEBUG
 ###
 
-
+"""
 # Sample population: Bridge nodes and connections
 population = [
     [1, 2],  # Example individual 1
@@ -285,6 +286,7 @@ population = [
     [13, 14],
     [2,3] # Example individual 7
 ]
+
 
 # Failure force values (objective to maximize)
 failure_force = [
@@ -307,6 +309,48 @@ weight = [
     3,   # Very low weight
     12.001    # Moderate weight
 ]
+"""
+
+failure_force = [
+    1636887.6558473099, 1585828.894101424, 1636887.6558473045, 1585828.894101424, 
+    1585828.8941014218, 1585828.8941014316, 1585828.8941014286, 1585828.8941014218, 
+    1585828.894101424, 1585828.8941014218, 1585828.894101415, 1585828.8941014213, 
+    1585828.8941014202, 1585828.8941014144, 1585828.8941014209, 1585828.894101418, 
+    1585828.894101414, 1585828.894101413, 1585828.8941014134, 1585828.894101413, 
+    1585828.8941014179, 1585828.8941014118, 1585828.894101411, 1585828.894101413, 
+    1585828.894101415, 1585828.894101411, 1585828.8941014123, 1585828.894101414, 
+    1585828.8941014237, 1585828.8941014102, 1585828.8941014123, 1585828.8941014095, 
+    1585828.8941014225, 1585828.894101418, 1585828.894101412, 1585828.894101408, 
+    1585828.8941014209, 1585828.8941014095, 1585828.894101407, 1585828.8941014118, 
+    1585828.894101408, 1585828.8941014195, 1585828.8941014179, 1585828.8941014172, 
+    1585828.8941014179, 1636887.6558473064, 1585828.8941014262, 1585828.8941013988, 
+    1585828.8941014062, 1585828.8941014202, 1636887.6558473052, 1585828.8941014225, 
+    1585828.8941014318, 1393530.8244344385, 1585828.8941014062, 1585828.8941014346, 
+    1636887.655847303, 1585828.8941014288, 1585828.8941014218, 1585828.8941014302, 
+    1253178.587090065, 1649326.0820281552, 1585828.8941014046, 875853.9390121911
+]
+
+weight = [
+    836.0432570613123, 831.4733882743956, 836.0432570613123, 835.2975441408555, 
+    830.2080333502463, 837.4177877606143, 837.4177877606143, 831.4733882743955, 
+    835.2975441408556, 837.4177877606143, 830.2080333502462, 837.4177877606143, 
+    835.2975441408555, 830.2080333502463, 837.4177877606143, 837.4177877606143, 
+    830.2080333502463, 825.9279542081265, 835.2975441408556, 830.2080333502463, 
+    837.4177877606143, 835.2975441408555, 830.2080333502463, 835.2975441408556, 
+    837.4177877606143, 835.2975441408556, 835.2975441408557, 837.4177877606143, 
+    837.4177877606144, 835.2975441408556, 837.4177877606143, 830.2080333502463, 
+    837.4177877606144, 837.4177877606144, 837.4177877606143, 830.2080333502463, 
+    837.4177877606145, 835.2975441408556, 830.2080333502463, 837.4177877606143, 
+    835.2975441408556, 837.4177877606145, 837.4177877606144, 837.4177877606144, 
+    837.4177877606145, 843.2530114716803, 840.3494505699337, 836.2076356582878, 
+    837.4177877606143, 838.229206950175, 843.2530114716803, 840.3494505699337, 
+    841.5493746562785, 836.6459747094395, 837.4177877606145, 841.5493746562786, 
+    843.2530114716803, 841.5493746562784, 840.3494505699337, 841.5493746562785, 
+    838.8508531941142, 885.2057891890427, 924.8515958577261, 887.1680044774464
+]
+
+population = [1]*64
+## warum len nur = 64?
 
 
 results = pareto_local_fitness(population, failure_force, weight) #fforce, weight
