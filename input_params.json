@@ -4,7 +4,7 @@
 
     "tournament_size": 2,
     "num_selections": 50,
-    "population_size": 96,
+    "population_size": 128,
 
     "grid_size": 0.1,
     "build_area": [24, 7],
@@ -12,7 +12,7 @@
     "min_node_percentage": 0.001,
     "max_node_percentage": 0.0025,
 
-    "max_generations": 120,
+    "max_generations": 820,
 
 
     "min_node_num": 6,
@@ -22,7 +22,7 @@
     "material_elastic_modulus": 3.027e9,
     "member_width": 0.4,
 
-    "mutation_rate": 0.32,
+    "mutation_rate": 0.3,
     
     
     "material": [

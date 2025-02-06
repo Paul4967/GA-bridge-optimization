@@ -203,20 +203,20 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
     ### OFFSPRING OPERATIONS ### ------------------------------------
 
-    ### Select PT (50% of Population using tournament selection
-    population_PT = selection.crowded_tournament_selection(population_RT, population_RT_fitness, TOURNAMENT_SIZE, POPULATION_SIZE / 2)
+    ### Select PT (50% of Population using tournament selection                                 # tournament size
+    population_PT = selection.crowded_tournament_selection(population_RT, population_RT_fitness, 18, POPULATION_SIZE / 2)
     
     ### Create offspring (using tournament selection)
     # population_PT_offspring = selection.crowded_tournament_selection(population_PT, population_PT_fitness, TOURNAMENT_SIZE, POPULATION_SIZE / 4)
 
-    population_PT_offspring = population_PT
+    # population_PT_offspring = population_PT
 
 
     ### CROSSOVER ###----------------
     population_PT_offspring_mated = []
 
-    random.shuffle(population_PT_offspring)
-    pairs = [(population_PT_offspring[i], population_PT_offspring[i + 1]) for i in range(0, len(population_PT_offspring), 2)]
+    random.shuffle(population_PT)
+    pairs = [(population_PT[i], population_PT[i + 1]) for i in range(0, len(population_PT), 2)]
 
     reproduction_rate = 4 # 2 childs per individual
 
@@ -224,15 +224,18 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         for _ in range(int(reproduction_rate)):
 
             num_viable = 0
+            tries = 0
             while num_viable < 1: #guarantee all solutions are viable
 
                 bridge_nodes, bridge_connections = crossover.crossover(BASE_NODES, BASE_CONNECTIONS, bridge1_nodes, bridge2_nodes, bridge1_connections, bridge2_connections)
 
                 if is_viable(bridge_nodes, BASE_NODES, bridge_connections, BASE_CONNECTIONS, GRID_SIZE, MATERIAL_YIELD_STRENGHT, 
-                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH):
+                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH) or tries > 10:
 
                     num_viable +=1
                     population_PT_offspring_mated.append((bridge_nodes, bridge_connections))
+                else:
+                    tries +=1
 
 
 
@@ -244,6 +247,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     for individual in population_PT_offspring_mated:
 
         ind_is_viable = False
+        tries = 0
         while ind_is_viable is False:
 
             # Unpack the individual to reset variables from the population
@@ -274,9 +278,11 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
             )
 
             if is_viable(bridge_nodes, BASE_NODES, bridge_connections, BASE_CONNECTIONS, GRID_SIZE, MATERIAL_YIELD_STRENGHT, 
-                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH):
+                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH) or tries > 10:
                 
                 ind_is_viable = True
+            else:
+                tries +=1
 
         
         population_PT_offspring_mutated.append((bridge_nodes_, bridge_connections_))

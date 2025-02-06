@@ -238,15 +238,17 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         for _ in range(int(reproduction_rate)):
 
             num_viable = 0
+            tries = 0
             while num_viable < 1: #guarantee all solutions are viable
 
                 bridge_nodes, bridge_connections = crossover.crossover(BASE_NODES, BASE_CONNECTIONS, bridge1_nodes, bridge2_nodes, bridge1_connections, bridge2_connections)
 
                 if is_viable(bridge_nodes, BASE_NODES, bridge_connections, BASE_CONNECTIONS, GRID_SIZE, MATERIAL_YIELD_STRENGHT, 
-                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH):
+                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH) or tries > 30:
 
                     num_viable +=1
                     population_PT_offspring_mated.append((bridge_nodes, bridge_connections))
+                tries +=1
 
 
 
@@ -258,6 +260,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     for individual in population_PT_offspring_mated:
 
         ind_is_viable = False
+        tries = 0
         while ind_is_viable is False:
 
             # Unpack the individual to reset variables from the population
@@ -288,9 +291,10 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
             )
 
             if is_viable(bridge_nodes, BASE_NODES, bridge_connections, BASE_CONNECTIONS, GRID_SIZE, MATERIAL_YIELD_STRENGHT, 
-                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH):
+                    MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH) or tries > 30:
                 
                 ind_is_viable = True
+            tries +=1
 
         
         population_PT_offspring_mutated.append((bridge_nodes_, bridge_connections_))
@@ -426,46 +430,58 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
 
 
+
+
+
+    ### SAVE FINAL PARETO FRONT ###
+    # empty previous data first:
+    with open(file_path_termination, "w") as file:
+        json.dump([], file)  # Ensure it's a valid empty JSON list
+    step = 0
+    for i, individual in enumerate(population_vis):
+        if population_RT_fitness[i] >= 0.1:
+            bridge_nodes_front, bridge_connections_front = individual
+            all_connections_front = BASE_CONNECTIONS + bridge_connections_front
+            all_nodes_front = BASE_NODES + bridge_nodes_front
+            step += 1
+
+            _, _, all_failure_forces = ftns.calc_fitness(all_connections_front, all_nodes_front, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
+            all_failure_forces = [float(f) for f in all_failure_forces]
+            weight_front = ga_modules.calc_weight(all_connections_front, all_nodes_front)
+
+            # add to json
+            data = {
+            "step": step,
+            "all_connections": all_connections_front,
+            "all_nodes": all_nodes_front,
+            "failure_forces": all_failure_forces,
+            "min_failure_force": min([abs(failure_force) for failure_force in all_failure_forces]),
+            "weight": weight_front
+            }
+
+            # Load existing data
+            if os.stat(file_path_termination).st_size == 0:
+                print("The file is empty!")
+            else:
+                with open(file_path_termination, 'r') as f:
+                    existing_data_termination = json.load(f)
+
+            # Append new data
+            existing_data_termination.append(data)
+
+            # Save the updated data back to the file
+            with open(file_path_termination, 'w') as f:
+                # json.dump(existing_data, f, indent=4)
+                json.dump(existing_data_termination, f)
+
+
+
+
+
 ###############################################################################
 ### TERMINATION ### -----------------------------------------------------------
 
-### SAVE FINAL PARETO FRONT ###
-step = 0
-for i, individual in enumerate(population_vis):
-    if population_RT_fitness[i] >= 0.1:
-        bridge_nodes_front, bridge_connections_front = individual
-        all_connections_front = BASE_CONNECTIONS + bridge_connections_front
-        all_nodes_front = BASE_NODES + bridge_nodes_front
-        step += 1
 
-        _, _, all_failure_forces = ftns.calc_fitness(all_connections_front, all_nodes_front, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
-        all_failure_forces = [float(f) for f in all_failure_forces]
-        weight_front = ga_modules.calc_weight(all_connections_front, all_nodes_front)
-
-        # add to json
-        data = {
-        "step": step,
-        "all_connections": all_connections_front,
-        "all_nodes": all_nodes_front,
-        "failure_forces": all_failure_forces,
-        "min_failure_force": min([abs(failure_force) for failure_force in all_failure_forces]),
-        "weight": weight_front
-        }
-
-        # Load existing data
-        if os.stat(file_path_termination).st_size == 0:
-            print("The file is empty!")
-        else:
-            with open(file_path_termination, 'r') as f:
-                existing_data_termination = json.load(f)
-
-        # Append new data
-        existing_data_termination.append(data)
-
-        # Save the updated data back to the file
-        with open(file_path_termination, 'w') as f:
-            # json.dump(existing_data, f, indent=4)
-            json.dump(existing_data_termination, f)
 
 
 
