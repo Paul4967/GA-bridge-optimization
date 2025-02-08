@@ -437,18 +437,10 @@ if __name__ == "__main__":
     weight, truss_failure_force, all_failure_forces = calc_fitness(all_connections, all_nodes, GRID_SIZE, MATERIAL_YIELD_STRENGHT, MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH)
 
 
+    print(weight, truss_failure_force)
 
 
 
 
 
-
-    def end():
-        materials = [Material(1, 3.6E9, 0.0005625)]  # A = 10^-6 m^2 ? 
-        loads = [Load(3, 0, -1000)]
-        supports = [Support(1, True, True), Support(5, False, True)] # Fixing both x and y displacements at node 4 and only y displacement at node 7.
-
-        print("\nM", materials, "\nL", loads, "\nS", supports)
-
-    end()
 

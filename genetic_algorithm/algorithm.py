@@ -101,6 +101,7 @@ try:
         MAX_NODE_NUM = INPUT_PARAMS.get("max_node_num", 0.0)
         MAX_GENERATIONS = INPUT_PARAMS.get("max_generations", 0)
         MUTATION_RATE = INPUT_PARAMS.get("mutation_rate", 0.0)
+        MAX_NODE_OFFSET_MULTIPLIER = INPUT_PARAMS.get("max_node_offset_multiplier", 0.0)
 
         MATERIAL_YIELD_STRENGHT = INPUT_PARAMS.get("material_yield_strenght", 0)
         MATERIAL_ELASTIC_MODULUS = INPUT_PARAMS.get("material_elastic_modulus", 0)
@@ -218,6 +219,8 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
     ### Select PT (50% of RT)
     population_PT, population_PT_fitness = selection.select_PT(population_RT, population_RT_fitness, POPULATION_SIZE)
+
+    # population_PT, population_PT_fitness = selection.select_PT_tournament(population_RT, population_RT_fitness, 24, POPULATION_SIZE // 2)
     
     ### Create offspring (using tournament selection)
     population_PT_offspring = selection.crowded_tournament_selection(population_PT, population_PT_fitness, TOURNAMENT_SIZE, POPULATION_SIZE / 4)
@@ -279,7 +282,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
             # Perform mutation with fresh variables
             bridge_connections_, bridge_nodes_ = mutation.mutate(
                 MUTATION_RATE,
-                max_node_offset_multiplier,
+                MAX_NODE_OFFSET_MULTIPLIER,
                 GRID_SIZE,
                 BUILD_AREA,
                 bridge_nodes_copy,
