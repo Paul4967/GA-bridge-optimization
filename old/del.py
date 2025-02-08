@@ -56,10 +56,10 @@ class Support:
         self.y_support = y_support
 
 
-MATERIAL = [Material(1, 3.027e9, 0.16)]  # Using steel with E = 210 GPa and A = 0.01 m^2
+MATERIAL = [Material(1, 3.027e9, 0.0016)]  # Using steel with E = 210 GPa and A = 0.01 m^2
 LOADS = [Load(4, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
 SUPPORTS = [Support(1, True, True), Support(7, False, True)]
 
 
-weight, truss_failure_force, _ = ftns.calc_fitness(all_connections, all_nodes, 0.1, 0.066e9, 3.027e9, MATERIAL, LOADS, SUPPORTS, 0.4)
-print("weight: ", weight, "failure_force:", truss_failure_force)
+weight, truss_failure_force, all = ftns.calc_fitness(all_connections, all_nodes, 0.1, 0.066e9, 3.027e9, MATERIAL, LOADS, SUPPORTS, 0.04)
+print("weight: ", weight, "failure_force:", truss_failure_force, "\nf", all)

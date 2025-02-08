@@ -10,7 +10,7 @@ data_folder = os.path.join(project_folder, 'data')
 file_path = os.path.join(data_folder, 'pareto_fronts.json')
 # population: bridge_nodes, bridge_connections
 
-def pareto_fronts(individuals):
+def pareto_fronts(individuals, save_fronts):
 
     # logic for removing indetermineable trusses
     individuals = [individual for individual in individuals if individual[1] != 0 and individual[2] != 0]
@@ -57,6 +57,8 @@ def pareto_fronts(individuals):
         fronts.append(non_dominated)
 
 
+
+
     # SAVE ALL FRONTS TO JSON TO PLOT IN MATPLOTLIB
     # individual format: _, failure_force, weight
     formatted_fronts = [
@@ -64,34 +66,36 @@ def pareto_fronts(individuals):
     ]
 
     # Save to JSON
-    # File path
-    json_file = file_path
+    save_fronts = False
+    if save_fronts and 1 == 2:
+        # File path
+        json_file = file_path
 
-    # Load existing data if file exists
-    # Load existing data if file exists
-    if os.path.exists(json_file):
-        with open(json_file, "r") as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                data = {}  # If file is empty or corrupted, start fresh
-    else:
-        data = {}
+        # Load existing data if file exists
+        # Load existing data if file exists
+        if os.path.exists(json_file):
+            with open(json_file, "r") as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    data = {}  # If file is empty or corrupted, start fresh
+        else:
+            data = {}
 
-    # Ensure data structure is a dictionary
-    if not isinstance(data, dict):
-        data = {}
+        # Ensure data structure is a dictionary
+        if not isinstance(data, dict):
+            data = {}
 
-    # Determine the next entry index
-    existing_entries = [int(k) for k in data.keys()] if data else []
-    next_entry = max(existing_entries, default=-1) + 1  # Get next entry number
+        # Determine the next entry index
+        existing_entries = [int(k) for k in data.keys()] if data else []
+        next_entry = max(existing_entries, default=-1) + 1  # Get next entry number
 
-    # Save the new collection under a new entry key
-    data[str(next_entry)] = formatted_fronts
+        # Save the new collection under a new entry key
+        data[str(next_entry)] = formatted_fronts
 
-    # Save back to JSON
-    with open(json_file, "w") as f:
-        json.dump(data, f, indent=4)
+        # Save back to JSON
+        with open(json_file, "w") as f:
+            json.dump(data, f)
 
 
 
@@ -144,12 +148,12 @@ def crowding_distance(front):
 
 
 ### front format: [individual, failure_force, weight]
-def calc_fitness(population, failure_force, weight):
+def calc_fitness(population, failure_force, weight, save_fronts):
     ## INITIATE ##
     indices = list(range(len(population)))
     individuals = list(zip(indices, failure_force, weight))
 
-    p_fronts = pareto_fronts(individuals)
+    p_fronts = pareto_fronts(individuals, save_fronts)
     for front in p_fronts:
         print(":::::FRONT::::::: ", front)
 
@@ -190,8 +194,8 @@ def calc_fitness(population, failure_force, weight):
 
 
 
-def pareto_local_fitness(population, failure_force, weight): # failure_forces and weights!
-    pareto_fronts_ftns = calc_fitness(population, failure_force, weight)
+def pareto_local_fitness(population, failure_force, weight, save_fronts): # failure_forces and weights!
+    pareto_fronts_ftns = calc_fitness(population, failure_force, weight, save_fronts)
 
     flattened_pff = [item for sublist in pareto_fronts_ftns for item in sublist]
     ### FIX ARRAY LENGHT ### ----------------------------------
@@ -218,10 +222,10 @@ def pareto_local_fitness(population, failure_force, weight): # failure_forces an
 
 
 
-def get_individual_to_vis(population, failure_force, weight):
+def get_individual_to_vis(population, failure_force, weight, save_fronts):
     # get first pareto_line
     print("POPULATION:", population, "\nFAILURE FORCE: ", failure_force, "\nWEIGHT: ", weight)
-    pareto_fronts_ = calc_fitness(population, failure_force, weight)
+    pareto_fronts_ = calc_fitness(population, failure_force, weight, save_fronts)
     first_front = pareto_fronts_[0]
     first_item = first_front[0]
     f_x = first_item[1]
@@ -353,7 +357,7 @@ population = [1]*64
 ## warum len nur = 64?
 
 
-results = pareto_local_fitness(population, failure_force, weight) #fforce, weight
+results = pareto_local_fitness(population, failure_force, weight, False) #fforce, weight
 for result in results:
     print("FITNESS:", result)
 

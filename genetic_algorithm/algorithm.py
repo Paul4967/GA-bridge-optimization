@@ -192,10 +192,10 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         population_failure_force.append(abs(truss_failure_force))
 
     # calculate pareto fitness (sorted by front and cd dist.)
-    population_RT_fitness = pareto.pareto_local_fitness(population_RT, population_failure_force, population_weight)
+    population_RT_fitness = pareto.pareto_local_fitness(population_RT, population_failure_force, population_weight, True)
 
     "display fittest individual"
-    index_vis = pareto.get_individual_to_vis(population_RT, population_failure_force, population_weight)
+    index_vis = pareto.get_individual_to_vis(population_RT, population_failure_force, population_weight, False)
     bridge_nodes_vis, bridge_connections_vis = population_RT[index_vis]
     population_vis = population_RT
 
@@ -433,7 +433,15 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
 
 
+    vis_weight = []
+    for individual in population_vis:
+        bridge_nodes_front, bridge_connections_front = individual
+        all_connections_front = BASE_CONNECTIONS + bridge_connections_front
+        all_nodes_front = BASE_NODES + bridge_nodes_front
+        vis_weight.append(ga_modules.calc_weight(all_connections_front, all_nodes_front))
 
+    # Sort population_vis based on vis_weight in ascending order
+    # population_vis_sorted = [x for _, x in sorted(zip(vis_weight, population_vis))]
 
 
     ### SAVE FINAL PARETO FRONT ###

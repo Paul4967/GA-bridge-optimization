@@ -12,7 +12,7 @@
     "min_node_percentage": 0.001,
     "max_node_percentage": 0.0025,
 
-    "max_generations": 820,
+    "max_generations": 12420,
 
 
     "min_node_num": 4,
@@ -23,7 +23,7 @@
     "member_width": 0.04,
 
 
-    "mutation_rate": 0.1,
+    "mutation_rate": 0.2,
     "max_node_offset_multiplier": 1,
     
     
