@@ -23,14 +23,25 @@ except json.JSONDecodeError as e:
 
 # Create a custom colormap with white at zero
 colors = [
-    (0.0, "#0059FF"),   # Minimum (e.g., negative forces)
-    (0.5, "#000000"),  # Midpoint (zero)
-    (1.0, "#FF1E00")     # Maximum (positive forces)
+    (0.0, "#4093FF"),   # Minimum (e.g., negative forces)
+    (0.5, "#4A4A4A"),  # Midpoint (zero)
+    (1.0, "#FF7C2C")     # Maximum (positive forces)
 ]
 custom_cmap = LinearSegmentedColormap.from_list("CustomMap", colors)
 
+def norm_width(failure_force, forces):
+    f_force = abs(failure_force)
+    max_force = max(abs(f) for f in forces if not (f == float('inf') or f == float('-inf')))
+    if f_force != float('inf') and f_force != float('-inf'):
+        normalized_width = f_force / max_force
+        width = round(2 + normalized_width * 8)
+    else:
+        width = 10
+    return width
+
+
 # Plotting function
-def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
+def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, step):
     plt.close('all')  # Close all existing figures
     fig, ax = plt.subplots(figsize=(8, 6))  # Create figure and axis explicitly
 
@@ -67,14 +78,19 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
             node2_idx = id_to_index[node2_id]
             # Assign purple for infinite forces, otherwise use the colormap
             if isinf(forces[i]):
-                color = '#83CA00'  # Purple for infinite forces
+                color = '#80F21B'  # Purple for infinite forces
             else:
-                color = custom_cmap(norm(forces[i]))  # Get color based on force
+                #color = custom_cmap(norm(forces[i]))  # Get color based on force
+                if forces[i] <= 0:
+                    color = '#0E9BFF'
+                else:
+                    color = '#FF642C'
+
             x_coords = [nodes[node1_idx][1], nodes[node2_idx][1]]
             y_coords = [nodes[node1_idx][2], nodes[node2_idx][2]]
             
             # Draw the line
-            ax.plot(x_coords, y_coords, color=color, linewidth=2, zorder=2)
+            ax.plot(x_coords, y_coords, color=color, linewidth=norm_width(forces[i], forces), zorder=2)
             
             # Add force label at the midpoint of the connection
             def format_force(f):
@@ -84,7 +100,7 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
                     return "0"
                 exponent = floor(log10(abs(f)))
                 base = f / (10 ** exponent)
-                return f"{base:.1f}e{exponent}" if exponent != 0 else f"{base:.1f}"
+                return f"{base:.2f}e{exponent}" if exponent != 0 else f"{base:.2f}"
 
             # Add force label at the midpoint of the connection
             mid_x = (x_coords[0] + x_coords[1]) / 2
@@ -99,8 +115,9 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
         # ax.text(node[1] + 0.1, node[2] + 0.1, f"({node[1]:.1f}, {node[2]:.1f})", 
             # fontsize=7, zorder=10)
     
+    
     ax.set_xlim(-1, 25)
-    ax.set_ylim(-1, 11)
+    ax.set_ylim(-1, 9)
 
     # Ensure equal scaling of both axes
     ax.set_aspect('equal', adjustable='box')
@@ -110,26 +127,30 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force):
 
     # Set the grid ticks to 1 by 1
     ax.set_xticks(range(-1, 26, 1))  # Grid markings on x-axis from -1 to 25 with a step of 1
-    ax.set_yticks(range(-1, 12, 1))  # Grid markings on y-axis from -1 to 11 with a step of 1
-
+    ax.set_yticks(range(-1, 10, 1))  # Grid markings on y-axis from -1 to 11 with a step of 1
+    # Ensure equal scaling of both axes
+    
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
-    ax.set_title(f'weight: {weight:.2f}    failure_force: {abs(failure_force):.2f}N')
+    fig.suptitle(f'Generation: {step}', fontsize=20, fontweight='bold', x=0.1, y=0.9, ha='left')
+    ax.set_title(f'Generation: {step}     weight: {weight:.2f}kg    failure_force: {abs(failure_force):.2f}N')
+    
 
     # Create custom legend entries for force and compression
-    neutral_patch = mpatches.Patch(color=custom_cmap(norm(0)), label='None (Neutral Force)', linewidth=2)
-    compression_patch = mpatches.Patch(color=custom_cmap(norm(min(forces))), label='Compression (Negative Force)', linewidth=2)
-    tension_patch = mpatches.Patch(color=custom_cmap(norm(max(forces))), label='Tension (Positive Force)', linewidth=2)
+    # neutral_patch = mpatches.Patch(color=custom_cmap(norm(0)), label='Low failure force', linewidth=2)
+    inf_patch = mpatches.Patch(color='#80F21B', label='Infinite failure force (0 Load)', linewidth=2)
+    compression_patch = mpatches.Patch(color=custom_cmap(norm(min(forces))), label='Compression', linewidth=2)
+    tension_patch = mpatches.Patch(color=custom_cmap(norm(max(forces))), label='Tension', linewidth=2)
 
     # Add legend
-    ax.legend(handles=[neutral_patch, compression_patch, tension_patch], loc='upper right', fontsize=10)
+    ax.legend(handles=[inf_patch, compression_patch, tension_patch], loc='upper right', fontsize=10)
 
     # COLORBAR
-    sm = plt.cm.ScalarMappable(cmap=custom_cmap, norm=norm)
+    """sm = plt.cm.ScalarMappable(cmap=custom_cmap, norm=norm)
     sm.set_array([])  # Set an empty array to avoid errors
     cbar = fig.colorbar(sm, ax=ax)
     cbar.set_label('failure force in N', fontsize=12)
-
+    """
     return fig, ax
 
 def update_plot(step):
@@ -146,7 +167,7 @@ def update_plot(step):
     weight = step_data["weight"]
     failure_force = step_data["min_failure_force"]
     
-    fig, ax = plot_bridge_with_forces(nodes, connections, forces, weight, failure_force)
+    fig, ax = plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, step)
     
     if canvas:
         for widget in root.winfo_children():

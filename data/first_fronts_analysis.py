@@ -23,7 +23,7 @@ sorted_steps = sorted(pareto_dict.keys(), key=int)
 
 # Generate colors from the cool colormap
 num_fronts = len(sorted_steps)
-colors = [plt.cm.cool(i / (num_fronts - 1)) for i in range(num_fronts)]
+colors = [plt.cm.magma(i / (num_fronts - 1)) for i in range(num_fronts)]
 
 # Plot each front
 plt.figure(figsize=(8, 6))
@@ -33,13 +33,13 @@ for step, color in zip(sorted_steps, colors):
     weights = [point[0] for point in pareto_data]
     failure_forces = [point[1] for point in pareto_data]
 
-    plt.scatter(weights, failure_forces, color=color, label=f"Pareto Front {step}", edgecolors="black")
+    plt.scatter(weights, failure_forces, color=color)
     plt.plot(weights, failure_forces, linestyle="--", color=color, alpha=0.7)
 
 # Labels and title
 plt.xlabel("Weight")
 plt.ylabel("Failure Force")
-plt.title("Multiple Pareto Fronts (Cool Colormap)")
+plt.title("Multiple Pareto Fronts")
 plt.legend()
 plt.grid(True)
 
