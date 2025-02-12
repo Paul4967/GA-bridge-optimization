@@ -1,98 +1,53 @@
-import mutation
-import copy
-import json
+from PIL import Image, ImageDraw
+import os
 
-base = {
-    "nodes": [
-        [0.0, 0, 0],
-        [2.0, 2, 0],
-        [4.0, 4, 0],
-        [6.0, 6, 0],
-        # ["b1", 0, 0],
-        # ["b2", 2, 0],
-        # ["b3", 4, 0],
-        # ["b4", 6, 0],
-    ],
-    "connections": [
-        [0.0, 2.0],
-        [2.0, 4.0],
-        [4.0, 6.0]
-    ]
-}
+# Define the steps array
+steps = [1, 2, 3, 4, 5, 9, 10, 12, 15, 17, 20, 31, 32, 45, 51, 52, 57, 98, 100, 104, 106, 116, 132, 139, 156, 157, 158, 165, 167, 171, 176, 240, 259, 272, 296, 301, 321, 334, 350, 437, 451, 457, 610, 681, 689, 694, 698, 742, 759, 779, 792, 822, 852, 894, 913, 949, 1020, 1029, 1046, 1049, 1061, 1121]
 
-bridge = {
-    "nodes": [
-        [1.1, 1, 1],
-        [3.1, 3, 1],
-        [5.1, 5, 1],
-        # [2.1, 2, 1]
-    ],
-    "connections": [
-        [0.0, 1.1],
-        [2.0, 1.1],
-        [2.0, 3.1],
-        #[4.0, 3.1],
-        [4.0, 5.1],
-        [6.0, 5.1],
-        [1.1, 3.1],
-        [3.1, 5.1]
-    ]
-}
+# Define image width
+image_width = 1200
 
+# Define line properties
+line_color = "#ff642c"  # Orange
+line_width = 4  # Pixels
 
+import os
+import re
 
+# Define the folder containing the PNG files
+output_folder = r"E:\_Projects\GA for generating optimal bridges\anderes\Simulation\bars"  # Change this to your folder path
+os.makedirs(output_folder, exist_ok=True)
 
+# Define image dimensions
+image_width = 1200  # Fixed width
+image_height = 800  # Fixed height
 
+# Define line properties
+line_color = "#ff642c"  # Orange
+line_width = 10  # Pixels
 
+# Define output folder
+os.makedirs(output_folder, exist_ok=True)
 
+# Generate images
+for index, step in enumerate(steps, start=1):
+    # Create a new white image (RGB mode)
+    image = Image.new("RGB", (image_width, image_height), "white")
+    draw = ImageDraw.Draw(image)
 
+    # Ensure the step value does not exceed image width
+    x_position = min(step, image_width - line_width)
 
+    # Draw the vertical line at the given step position
+    draw.line([(x_position, 0), (x_position, image_height)], fill=line_color, width=line_width)
 
+    # Format filename with leading zeros (frame01, frame02, ..., frameXX)
+    file_name = f"frame{index}.png"
+    file_path = os.path.join(output_folder, file_name)
 
+    # Save the image
+    image.save(file_path)
 
+    print(f"Saved: {file_path}")
 
-mutate_node_probability = 1
-mutate_connection_probability = 1
-max_node_offset_multiplier = 1
-grid_size = 1
-build_area = 6, 3
-bridge_nodes = bridge["nodes"]
-base_nodes = base["nodes"]
-bridge_connections = bridge["connections"]
-base_connections = base["connections"]
-max_mutation_amplifier = 1
-min_mutation_amplifier = 1
-all_connections = bridge_connections + base_connections
-all_nodes = bridge_nodes + base_nodes
-
-
-for _ in range(100):
-    bridge_connections_copy = copy.deepcopy(bridge_connections)
-    bridge_nodes_copy = copy.deepcopy(bridge_nodes)
-    all_connections_copy = copy.deepcopy(all_connections)
-    all_nodes_copy = copy.deepcopy(all_nodes)
-
-    bridge_connections_, bridge_nodes_ = mutation.mutate(
-        mutate_node_probability, mutate_connection_probability, max_node_offset_multiplier, grid_size, build_area,
-        bridge_nodes_copy, base_nodes, bridge_connections_copy, base_connections, max_mutation_amplifier, min_mutation_amplifier, all_connections_copy, all_nodes_copy
-    )
-
-
-
-
-all_connections = [[0.0, 2.0], [2.0, 4.0], [4.0, 6.0], [5.2, 4.0], [2.2, 0.1], [0.1, 0.0], [6.0, 5.2], [5.2, 2.2], [2.2, 4.0]]
-all_nodes = [[0.0, 0, 0], [2.0, 2, 0], [4.0, 4, 0], [6.0, 6, 0], [0.1, 0, 1], [5.2, 5, 2], [2.2, 2, 2]]
-
-data = {
-    "all_connections": all_connections,
-    "all_nodes": all_nodes
-}
-
-# Save the data to a json file
-file_path = 'connections_and_nodes.json'
-with open(file_path, 'w') as f:
-    json.dump(data, f)
-
-file_path
-
-print("saved to file")
+print("Image generation complete!")

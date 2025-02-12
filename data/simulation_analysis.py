@@ -43,7 +43,7 @@ def norm_width(failure_force, forces):
 # Plotting function
 def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, step):
     plt.close('all')  # Close all existing figures
-    fig, ax = plt.subplots(figsize=(10, 8))  # Create figure and axis explicitly
+    fig, ax = plt.subplots(figsize=(13.5, 10.5))  # Create figure and axis explicitly
 
     ## ERROR PREVENTION----------------
     finite_forces = [f for f in forces if not isinf(f)]  # Filter out infinite values
@@ -133,7 +133,7 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, s
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
     fig.suptitle(f'Generation: {step}', fontsize=16, fontweight='bold', x=0.1, y=0.9, ha='left')
-    ax.set_title(f'weight: {weight:.2f}kg    failure_force: {abs(failure_force):.2f}N')
+    ax.set_title(f'weight: {weight:.2f}g    failure_force: {abs(failure_force):.2f}N\n', fontsize=15)
     
 
     # Create custom legend entries for force and compression
@@ -157,7 +157,7 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, s
 
     ### SAVE AS IMG ###
     # Define the folder path
-    folder_path = r"E:\_Projects\GA for generating optimal bridges\anderes\Simulation\steps"  # Change this to your desired folder
+    folder_path = r"E:\_Projects\GA for generating optimal bridges\anderes\Simulation\steps_3"  # Change this to your desired folder
 
     # Ensure the directory exists
     os.makedirs(folder_path, exist_ok=True)
@@ -203,12 +203,6 @@ def update_plot(step):
 
 
 
-def save_to_img():
-    for item in data:
-        step =  item["step"]
-        update_plot(step)
-save_to_img()
-
 
 root = tk.Tk()
 root.title("Bridge Visualization")
@@ -249,7 +243,21 @@ step_slider.bind("<Motion>", update_step_label)
 update_plot(1)  # Start with Step 1
 
 
+def save_to_img():
+    prev_weight = None  # Initialize previous weight as None
+    displayed_step = []
 
+    for item in data:
+        step = item["step"]
+        weight = item["weight"]  # Get the current step's weight
+
+        if weight != prev_weight:  # Only update if weight is different from the previous step
+            update_plot(step)
+            displayed_step.append(step)
+
+        prev_weight = weight  # Update previous weight for next iteration
+    print("DISP STEP: ", displayed_step)
+save_to_img()
 
 
 
