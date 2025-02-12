@@ -43,7 +43,7 @@ def norm_width(failure_force, forces):
 # Plotting function
 def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, step):
     plt.close('all')  # Close all existing figures
-    fig, ax = plt.subplots(figsize=(8, 6))  # Create figure and axis explicitly
+    fig, ax = plt.subplots(figsize=(10, 8))  # Create figure and axis explicitly
 
     ## ERROR PREVENTION----------------
     finite_forces = [f for f in forces if not isinf(f)]  # Filter out infinite values
@@ -132,8 +132,8 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, s
     
     ax.set_xlabel("Length in m", fontsize=12)
     ax.set_ylabel("Height in m", fontsize=12)
-    fig.suptitle(f'Generation: {step}', fontsize=20, fontweight='bold', x=0.1, y=0.9, ha='left')
-    ax.set_title(f'Generation: {step}     weight: {weight:.2f}kg    failure_force: {abs(failure_force):.2f}N')
+    fig.suptitle(f'Generation: {step}', fontsize=16, fontweight='bold', x=0.1, y=0.9, ha='left')
+    ax.set_title(f'weight: {weight:.2f}kg    failure_force: {abs(failure_force):.2f}N')
     
 
     # Create custom legend entries for force and compression
@@ -151,7 +151,30 @@ def plot_bridge_with_forces(nodes, connections, forces, weight, failure_force, s
     cbar = fig.colorbar(sm, ax=ax)
     cbar.set_label('failure force in N', fontsize=12)
     """
+
+    
+
+
+    ### SAVE AS IMG ###
+    # Define the folder path
+    folder_path = r"E:\_Projects\GA for generating optimal bridges\anderes\Simulation\steps"  # Change this to your desired folder
+
+    # Ensure the directory exists
+    os.makedirs(folder_path, exist_ok=True)
+
+    # Dynamically generate the filename
+    file_name = f"generation_step_{step}.png"
+    file_path = os.path.join(folder_path, file_name)
+
+    # Save the figure
+    plt.savefig(file_path, dpi=300, bbox_inches='tight')
+
+
     return fig, ax
+
+
+
+
 
 def update_plot(step):
     global canvas
@@ -180,7 +203,11 @@ def update_plot(step):
 
 
 
-
+def save_to_img():
+    for item in data:
+        step =  item["step"]
+        update_plot(step)
+save_to_img()
 
 
 root = tk.Tk()
