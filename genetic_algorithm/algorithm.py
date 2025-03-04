@@ -10,16 +10,15 @@ sys.path.append(project_folder)
 import json
 import math
 import random
-import initialization_reworked as initialization
-#import mutation_reworked as mutation
-import m_r as mutation
 import time
 import copy
 import crossover
 import ga_modules
-import pareto_reworked as pareto
+import pareto
+import fitness as ftns
+import initialization
+import mutation
 import importlib
-import fitness_reworked as ftns
 import selection
 import numpy as np
 import torch
@@ -47,7 +46,6 @@ file_pareto_path = os.path.join(data_folder, "first_pareto_fronts.json")
 existing_data = []
 existing_pareto_data = []
 existing_data_termination = []
-
 
 
 # Setup Tensorboard # --------------------
@@ -89,10 +87,9 @@ try:
         INPUT_PARAMS = json.load(json_file)
         
         # Declare constants from JSON data
-        BASE_NODES = INPUT_PARAMS.get("base_nodes", "[]")  # Convert JSON string to Python list
-        BASE_CONNECTIONS = INPUT_PARAMS.get("base_connections", "[]")  # Convert JSON string to Python list
+        BASE_NODES = INPUT_PARAMS.get("base_nodes", "[]")
+        BASE_CONNECTIONS = INPUT_PARAMS.get("base_connections", "[]")
         TOURNAMENT_SIZE = INPUT_PARAMS.get("tournament_size", 0)
-        NUM_SELECTIONS = INPUT_PARAMS.get("num_selections", 0)
         POPULATION_SIZE = INPUT_PARAMS.get("population_size", 0)
         GRID_SIZE = INPUT_PARAMS.get("grid_size", 0.0)
         BUILD_AREA_ = INPUT_PARAMS.get("build_area", "[]")
@@ -106,6 +103,7 @@ try:
         MATERIAL_YIELD_STRENGHT = INPUT_PARAMS.get("material_yield_strenght", 0)
         MATERIAL_ELASTIC_MODULUS = INPUT_PARAMS.get("material_elastic_modulus", 0)
         MEMBER_WIDTH = INPUT_PARAMS.get("member_width", 0)
+
         # Extract materials from JSON
         MATERIAL = [
             Material(m["id"], m["E"], m["A"] / GRID_SIZE**2)
@@ -130,7 +128,6 @@ except json.JSONDecodeError as e:
     print(f"Error decoding JSON: {e}")
 
 
-
 ####################################################################
 def is_viable(bn, BN, bc, BC, GRID_SIZE, MATERIAL_YIELD_STRENGHT, 
     MATERIAL_ELASTIC_MODULUS, MATERIAL, LOADS, SUPPORTS, MEMBER_WIDTH):
@@ -144,9 +141,6 @@ def is_viable(bn, BN, bc, BC, GRID_SIZE, MATERIAL_YIELD_STRENGHT,
     )
     if weight != 0 and truss_failure_force != 0:
         return True
-
-
-
 
 
 
@@ -256,7 +250,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
 
 
-
     ### MUTATION ###---------------------
     population_PT_offspring_mutated = []
 
@@ -304,34 +297,13 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
                 
 
     
-
-
     ### recombine offspring and parents ### -----------------------------
     population_QT = population_PT_offspring_mutated
     population_RT = population_PT + population_QT
 
 
 
-    # further todo: tensorboard + jsons + ind to vis
-    # + selection prevent selecting same ind twice?
-    # + sort out duplicates in pareto?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ###############################################################
     ### TENSORBOARD ###
 
     weight = population_weight[index_vis]
@@ -353,7 +325,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     writer.flush()
 
     
-
 
     ### FITTEST IND TO JSON ###
     all_connections_vis = BASE_CONNECTIONS + bridge_connections_vis
@@ -431,8 +402,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
 
 
-
-
     vis_weight = []
     for individual in population_vis:
         bridge_nodes_front, bridge_connections_front = individual
@@ -440,11 +409,9 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         all_nodes_front = BASE_NODES + bridge_nodes_front
         vis_weight.append(ga_modules.calc_weight(all_connections_front, all_nodes_front))
 
-    # Sort population_vis based on vis_weight in ascending order
-    # population_vis_sorted = [x for _, x in sorted(zip(vis_weight, population_vis))]
 
 
-    ### SAVE FINAL PARETO FRONT ###
+    ### SAVE FINAL PARETO FRONT ### -----------------------------------
     # empty previous data first:
     with open(file_path_termination, "w") as file:
         json.dump([], file)  # Ensure it's a valid empty JSON list
@@ -487,14 +454,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
 
 
-
-
 ###############################################################################
-### TERMINATION ### -----------------------------------------------------------
-
-
-
-
-
-
+# Launch Tensorboard:
 # python -m tensorboard.main --logdir=runs/fitness_metrics --reload_interval=2

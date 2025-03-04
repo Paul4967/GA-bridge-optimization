@@ -140,40 +140,6 @@ def analyze_truss(nodes, members, materials, loads, supports):
     return formatted_displacements, forces, stress_strain
 
 
-
-
-
-'''
-nodes = [Node(1, 1, 1),
-Node(2, 3, 1),
-Node(3, 5, 1),
-Node(4, 0, 0),
-Node(5, 2, 0),
-Node(6, 4, 0),
-Node(7, 6, 0)]
-
-members = [Member(1, 4, 1, 1), Member(2, 5, 1, 1), Member(3, 5, 2, 1), Member(4, 6, 2, 1), Member(5, 6, 3, 1), Member(6, 7, 3, 1), Member(7, 1, 2, 1), Member(8, 2, 3, 1), Member(9, 4, 5, 1), Member(10, 5, 6, 1), Member(11, 6, 7, 1)]
-print("XX ", nodes)
-
-materials = [Material(1, 210E9, 0.0005625)]  # Using steel with E = 210 GPa and A = 0.01 m^2
-loads = [Load(5, 0, -1000), Load(6, 0, -1000)] # Applying a downward force of 980 N (100kg weight) at node 6
-supports = [Support(4, True, True), Support(7, False, True)]
-
-
-
-if __name__ == "__main__":
-    displacements, forces, stress_strain = analyze_truss(nodes, members, materials, loads, supports)
-
-    print("Nodal Displacements:")
-    for node, displacement in displacements.items():
-        print(f"{node}: {displacement:.6e}")
-
-    print("\nInternal Forces, Stress, and Strain:")
-    for member_id, values in stress_strain.items():
-        print(f"Member {member_id}: Force = {forces[member_id]:.6e} N, Stress = {values['stress']:.6e} Pa, Strain = {values['strain']:.6e}")
-
-'''
-
 end_time = time.perf_counter()
 
 execution_time = end_time - start_time
