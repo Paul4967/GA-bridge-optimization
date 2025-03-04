@@ -8,9 +8,7 @@
     "grid_size": 0.1,
     "build_area": [24, 8],
 
-
     "max_generations": 12420,
-
 
     "min_node_num": 4,
     "max_node_num": 8,
@@ -34,6 +32,5 @@
         {"node_id": 1, "x_support": true, "y_support": true},
         {"node_id": 7, "x_support": false, "y_support": true}
     ]
-    
-  
+
   }

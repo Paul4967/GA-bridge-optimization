@@ -9,7 +9,6 @@ sys.path.append(project_folder)
 from genetic_algorithm import fitness as ftns
 
 
-
 all_nodes = [
     [0.0, 0, 0],
     [40.0, 40, 0],
@@ -63,44 +62,3 @@ SUPPORTS = [Support(1, True, True), Support(7, False, True)]
 
 weight, truss_failure_force, all = ftns.calc_fitness(all_connections, all_nodes, 0.1, 0.066e9, 3.027e9, MATERIAL, LOADS, SUPPORTS, 0.04)
 print("weight: ", weight, "failure_force:", truss_failure_force, "\nf", all)
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-
-### SORT FINAL SOLUTIONS:
-data_folder = os.path.join(project_folder, 'data')
-file_path = os.path.join(data_folder, 'final_solutions.json')
-
-
-import json
-
-import json
-
-# Load JSON data
-# Load JSON data
-with open(file_path, "r") as file:
-    data = json.load(file)
-
-# Sort the entries by ascending weight
-data.sort(key=lambda x: float(x["weight"]) if str(x["weight"]).lower() != "infinity" else float('inf'))
-
-# Update step values sequentially
-for index, entry in enumerate(data, start=1):
-    entry["step"] = index
-
-# Save the sorted data back to the JSON file
-with open(file_path, "w") as file:
-    json.dump(data, file, indent=4)
-
-"""
