@@ -27,7 +27,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 # -----------------------------------------
 
-
 ### SETUP ### -----------------------------
 
 # Construct the paths to the data folder and the JSON files
@@ -73,7 +72,6 @@ class Support:
         self.node_id = node_id
         self.x_support = x_support
         self.y_support = y_support
-
 
 
 ### READ INPUTS ### -----------------------
@@ -143,7 +141,6 @@ def is_viable(bn, BN, bc, BC, GRID_SIZE, MATERIAL_YIELD_STRENGHT,
         return True
 
 
-
 ### INITIALIZATION ### ---------------------------------------------
 population_RT = []
 a = 0
@@ -161,9 +158,6 @@ while len(population_RT) < (POPULATION_SIZE):
     if weight != 0 and truss_failure_force != 0:
         a +=1
         population_RT.append(ind)  # guarantee all individuals are viable
-
-
-
 
 
 ### EVOLUTION START #################################################
@@ -194,23 +188,7 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     population_vis = population_RT
 
 
-
-    "Removing duplicates:"
-    "delete all fitness values and corresponding individuals with a fitness of 0"
-    """
-    # Filter out individuals with fitness == 0
-    population_RT, population_RT_fitness = zip(
-        *[(ind, fit) for ind, fit in zip(population_RT, population_RT_fitness) if fit != 0]
-    )
-    # Convert back to lists (since zip returns tuples)
-    population_RT = list(population_RT)
-    population_RT_fitness = list(population_RT_fitness)
-    """
-    # already completed inside of pareto function
-
-
     ### OFFSPRING OPERATIONS ### ------------------------------------
-
     ### Select PT (50% of RT)
     population_PT, population_PT_fitness = selection.select_PT(population_RT, population_RT_fitness, POPULATION_SIZE)
 
@@ -218,9 +196,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     
     ### Create offspring (using tournament selection)
     population_PT_offspring = selection.crowded_tournament_selection(population_PT, population_PT_fitness, TOURNAMENT_SIZE, POPULATION_SIZE / 4)
-
-    "set worst 50% to be offspring population?"
-
 
 
     ### CROSSOVER ###----------------
@@ -246,8 +221,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
                     num_viable +=1
                     population_PT_offspring_mated.append((bridge_nodes, bridge_connections))
                 tries +=1
-
-
 
 
     ### MUTATION ###---------------------
@@ -305,7 +278,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
 
     ###############################################################
     ### TENSORBOARD ###
-
     weight = population_weight[index_vis]
     failure_force = population_failure_force[index_vis]
 
@@ -325,7 +297,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     writer.flush()
 
     
-
     ### FITTEST IND TO JSON ###
     all_connections_vis = BASE_CONNECTIONS + bridge_connections_vis
     all_nodes_vis = BASE_NODES + bridge_nodes_vis
@@ -358,7 +329,6 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
     with open(file_path, 'w') as f:
         # json.dump(existing_data, f, indent=4)
         json.dump(existing_data, f)
-
 
 
     # Save 1. Pareto Front to json
@@ -399,16 +369,12 @@ for i, generation in enumerate(range(MAX_GENERATIONS), 1):
         # json.dump(existing_data, f, indent=4)
         json.dump(existing_pareto_data, f)
 
-
-
-
     vis_weight = []
     for individual in population_vis:
         bridge_nodes_front, bridge_connections_front = individual
         all_connections_front = BASE_CONNECTIONS + bridge_connections_front
         all_nodes_front = BASE_NODES + bridge_nodes_front
         vis_weight.append(ga_modules.calc_weight(all_connections_front, all_nodes_front))
-
 
 
     ### SAVE FINAL PARETO FRONT ### -----------------------------------
